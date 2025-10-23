@@ -39,13 +39,12 @@ services:
     ports:
       - "8014:6379"
     volumes:
-      - ./redis_data:/data
+      - redis_data:/data
 
 volumes:
   mongo_data:
     name: ms-mongo_data
     external: true
-
   postgres_data:
     name: ms-postgres_data
     external: true
