@@ -1,0 +1,54 @@
+services:
+  keycloak:
+    image: keycloak/keycloak:26.4
+    command: [ "start-dev"]
+    ports:
+      - "8011:8080"
+    depends_on:
+      - postgres
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD?}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER:-postgres}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD?}
+  mongo:
+    image: mongo:8-noble
+    ports:
+      - "8012:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-mongo}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD?}
+    volumes:
+      - mongo_data:/data/db
+
+  postgres:
+    image: postgres:18-alpine
+    ports:
+      - "8013:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?}
+      POSTGRES_DB: keycloak
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "8014:6379"
+    volumes:
+      - ./redis_data:/data
+
+volumes:
+  mongo_data:
+    name: ms-mongo_data
+    external: true
+
+  postgres_data:
+    name: ms-postgres_data
+    external: true
+  redis_data:
+    name: ms-redis_data
+    external: true
