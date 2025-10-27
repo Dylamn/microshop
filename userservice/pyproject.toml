@@ -5,20 +5,30 @@ description = "userservice"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "alembic>=1.17.0",
     "asgi-correlation-id>=4.3.4",
     "fastapi[standard]>=0.120.0",
+    "psycopg[binary]>=3.2.12",
     "pydantic-settings>=2.11.0",
     "pyyaml>=6.0.3",
+    "sqlalchemy>=2.0.44",
 ]
 
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "pytest>=8.4.2",
+    "ruff>=0.14.2",
+    "types-pyyaml>=6.0.12.20250915",
+]
 
 [tool.mypy]
 strict = true
-exclude = [".venv"]
+exclude = [".venv", "migrations"]
 
 [tool.ruff]
 target-version = "py313"
-exclude = [".venv"]
+exclude = [".venv", "migrations"]
 
 [tool.ruff.lint]
 select = [
@@ -37,12 +47,4 @@ ignore = [
     "B008",  # do not perform function calls in argument defaults
     "W191",  # indentation contains tabs
     "B904",  # Allow raising exceptions without from e, for HTTPException
-]
-
-[dependency-groups]
-dev = [
-    "mypy>=1.18.2",
-    "pytest>=8.4.2",
-    "ruff>=0.14.2",
-    "types-pyyaml>=6.0.12.20250915",
 ]
