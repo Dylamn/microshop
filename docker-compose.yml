@@ -8,7 +8,7 @@ services:
       watch:
         - action: sync
           path: ./userservice
-          target: /app
+          target: /opt
           ignore:
             - .venv
         - action: rebuild
