@@ -24,6 +24,7 @@ dev = [
 
 [tool.mypy]
 strict = true
+plugins = ["pydantic.mypy"]
 exclude = [".venv", "migrations"]
 
 [tool.ruff]
