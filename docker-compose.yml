@@ -4,6 +4,8 @@ services:
       context: ./userservice
     ports:
       - "8005:8000"
+    depends_on:
+      - postgres
     develop:
       watch:
         - action: sync
@@ -16,7 +18,7 @@ services:
 
   keycloak:
     image: keycloak/keycloak:26.4
-    command: [ "start-dev"]
+    command: ["start-dev"]
     ports:
       - "8011:8080"
     depends_on:
