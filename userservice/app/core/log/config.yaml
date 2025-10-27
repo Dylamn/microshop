@@ -1,0 +1,34 @@
+version: 1
+disable_existing_loggers: false
+
+filters:
+  correlation_id:
+    (): asgi_correlation_id.CorrelationIdFilter
+    uuid_length: 32
+    default_value: "-"
+
+formatters:
+  json:
+    (): app.core.log.formatters.JsonFormatter
+  console:
+    (): app.core.log.formatters.ConsoleFormatter
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: console
+    stream: ext://sys.stdout
+    filters: [correlation_id]
+
+  json:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: json
+    stream: ext://sys.stdout
+    filters: [correlation_id]
+
+loggers:
+  root:
+    level: DEBUG
+    handlers: [console]
