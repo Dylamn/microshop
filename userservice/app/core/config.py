@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from pydantic import PostgresDsn, computed_field
@@ -32,6 +33,17 @@ class Settings(BaseSettings):
             path=self.DB_NAME,
         )
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def VERSION(self) -> str | None:
+        # Get the version from the pyproject.toml file
+        from tomllib import load
+        project_dir = Path(__file__).parent.parent.parent
+        with open(project_dir / "pyproject.toml", "rb") as f:
+            pyproject = load(f)
+        app_version = pyproject["project"]["version"]
+
+        return app_version if isinstance(app_version, str) else None
 
 
 settings = Settings()
