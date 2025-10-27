@@ -12,3 +12,12 @@ build:
 
 logs:
 	docker compose logs -f $(s)
+
+debug:
+	docker compose exec -it $(s) bash
+
+migrate\:upgrade:
+	docker compose exec $(s) alembic upgrade head
+
+migrate\:downgrade:
+	docker compose exec $(s) alembic downgrade head-$(n)
