@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import Literal
 
-from pydantic import PostgresDsn, computed_field
+from joserfc.jwk import OctKey
+from pydantic import PostgresDsn, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,11 +16,21 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
 
+    JWT_ALGORITHM: str
+    JWT_SECRET: OctKey
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
     DB_NAME: str
     DB_HOST: str
     DB_PORT: int = 5432
     DB_USER: str
     DB_PASSWORD: str
+
+    @field_validator("JWT_SECRET", mode="before")
+    @classmethod
+    def convert_secret_to_octkey(cls, v: str) -> OctKey:
+        return OctKey.import_key(v)
+
 
     @computed_field  # type: ignore[prop-decorator]
     @property
