@@ -1,15 +1,15 @@
 import logging
 from datetime import timedelta
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.api.deps import SessionDep
+from app.api.deps import AuthUser, SessionDep
 from app.core import security
 from app.core.config import settings
 from app.schemas.token import Token
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserResource, UserUpdatePassword
 from app.services import auth_service, user_service
 
 logger = logging.getLogger(__name__)
@@ -51,6 +51,23 @@ async def register(session: SessionDep, payload: UserCreate) -> Token:
     token = security.create_access_token(user.id, access_token_expires)
 
     return Token(access_token=token, token_type="bearer")
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password(
+    session: SessionDep,
+    current_user: AuthUser,
+    passwords: UserUpdatePassword
+) -> None:
+    logger.debug("User password update", extra={"actor": current_user.id})
+
+    auth_service.update_user_password(
+        session, current_user, passwords
+    )
+
+@router.get("/me", response_model=UserResource)
+async def me(user: AuthUser) -> Any:
+    return user
 
 
 @router.get("/logout")

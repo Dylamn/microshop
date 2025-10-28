@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr
 
+from .address import AddressDB, AddressResource
+
 
 class UserBase(BaseModel):
     username: str = Field(..., min_length=2, max_length=30)
@@ -18,7 +20,7 @@ class UserUpdate(UserBase):
 
 
 class UserUpdatePassword(BaseModel):
-    current_password: str = Field(..., min_length=16)
+    current_password: str
     new_password: str = Field(..., min_length=16)
     confirm_password: str = Field(..., min_length=16)
 
@@ -31,3 +33,16 @@ class UserDB(UserBase):
 
     created_at: datetime
     updated_at: datetime | None
+
+    addresses: list["AddressDB"] = []
+
+
+class UserResource(BaseModel):
+    """
+    Represents the response model for a user.
+    """
+    id: UUID
+    username: str
+    email: EmailStr
+
+    addresses: list[AddressResource] = []

@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from joserfc import jwt
 
 from .config import settings
@@ -31,8 +32,10 @@ def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-
-    return pwd_context.verify(hashed_password, password=plain_password)
+    try:
+        return pwd_context.verify(hashed_password, password=plain_password)
+    except VerifyMismatchError:
+        return False
 
 
 def hash_password(password: str) -> str:
