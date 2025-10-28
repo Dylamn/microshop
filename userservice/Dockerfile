@@ -30,8 +30,13 @@ ENV PATH="/opt/.venv/bin:$PATH"
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
+# Create additional directories needed by the application.
+RUN mkdir -p /var/log/userservice \
+  && chown nonroot /var/log/userservice
+
 # Use the non-root user to run our application
 USER nonroot
+
 
 # Uses `fastapi dev` to enable hot-reloading when the `watch` sync occurs
 # Uses `--host 0.0.0.0` to allow access from outside the container

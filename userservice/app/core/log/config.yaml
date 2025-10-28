@@ -22,13 +22,16 @@ handlers:
     filters: [correlation_id]
 
   json:
-    class: logging.StreamHandler
+    class: logging.handlers.TimedRotatingFileHandler
+    when: midnight
+    backupCount: 7
+    filename: /var/log/userservice/app.log
     level: INFO
     formatter: json
-    stream: ext://sys.stdout
+
     filters: [correlation_id]
 
 loggers:
   root:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, json]
