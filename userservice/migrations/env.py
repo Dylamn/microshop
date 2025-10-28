@@ -1,9 +1,11 @@
+from collections.abc import Iterable
 from logging.config import fileConfig
 
+from alembic import context
+from alembic.migration import MigrationContext
+from alembic.operations import MigrationScript
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
-from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,6 +23,7 @@ from app.core.config import settings  # type: ignore[import-not-found]
 
 target_metadata = Base.metadata
 
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -29,6 +32,23 @@ target_metadata = Base.metadata
 def get_database_url() -> str:
     """Get the configured database URL from the environment."""
     return str(settings.DATABASE_URL)
+
+
+def process_revision_directives(
+    context: MigrationContext,
+    revision: str | Iterable[str | None] | Iterable[str],
+    directives: list[MigrationScript],
+) -> None:
+    """
+    This method is responsible for preventing
+    the creation of empty migrations when `--autogenerate` is used.
+    """
+    assert config.cmd_opts is not None
+    if getattr(config.cmd_opts, 'autogenerate', False):
+        script = directives[0]
+        assert script.upgrade_ops is not None
+        if script.upgrade_ops.is_empty():
+            directives[:] = []
 
 
 def run_migrations_offline() -> None:
@@ -74,7 +94,10 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata, compare_type=True
+            connection=connection,
+            target_metadata=target_metadata,
+            process_revision_directives=process_revision_directives,
+            compare_type=True
         )
 
         with context.begin_transaction():
