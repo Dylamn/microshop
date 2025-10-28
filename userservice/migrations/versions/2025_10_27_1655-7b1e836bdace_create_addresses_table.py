@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('street', sa.String(length=50), nullable=False),
     sa.Column('city', sa.String(length=50), nullable=False),
     sa.Column('state', sa.String(length=50), nullable=False),
-    sa.Column('zip', sa.String(length=20), nullable=False),
+    sa.Column('zipcode', sa.String(length=20), nullable=False),
     sa.Column('user_id', sa.Uuid(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')

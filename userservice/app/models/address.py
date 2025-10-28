@@ -17,11 +17,11 @@ class Address(Base):
     street: Mapped[str] = mapped_column(String(50), nullable=False)
     city: Mapped[str] = mapped_column(String(50), nullable=False)
     state: Mapped[str] = mapped_column(String(50), nullable=False)
-    zip: Mapped[str] = mapped_column(String(20), nullable=False)
+    zipcode: Mapped[str] = mapped_column(String(20), nullable=False)
 
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
 
     user: Mapped["User"] = relationship(back_populates="addresses")
 
     def __str__(self) -> str:
-        return f"{self.street}, {self.city}, {self.zip} {self.state}"
+        return f"{self.street}, {self.city}, {self.zipcode} {self.state}"
