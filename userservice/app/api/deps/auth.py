@@ -9,12 +9,12 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.models import User
 from app.schemas.token import TokenClaims
+from app.schemas.user import UserDB
 
-from ...schemas.user import UserDB
 from .db import SessionDep
 
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl="/auth/login/access-token"
+    tokenUrl="auth/login/access-token"
 )
 
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
