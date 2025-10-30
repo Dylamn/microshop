@@ -1,12 +1,40 @@
-from typing import Sequence
+from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 from app.models import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.pagination import PaginationParams, PaginationResponse
+from app.schemas.user import UserCreate, UserResource, UserUpdate
+
+
+def paginate(
+    session: Session,
+    pagination: PaginationParams
+) -> PaginationResponse[UserResource]:
+    """
+    Paginates through User records obtained from the database based on the provided
+    pagination parameters.
+
+    Args:
+        session: The database session used to execute queries.
+        pagination: The pagination parameters for managing page size and offset.
+
+    Returns:
+        PaginationResponse[User]: A paginated response containing metadata and a
+        list of User records.
+    """
+    query = select(User)
+    # TODO: Extract pagination logic from resource specific services (repository pattern?)
+    total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+
+    query = query.offset(pagination.get_skip).limit(pagination.per_page)
+    result = session.execute(query).scalars().all()
+
+    return PaginationResponse(**pagination.get_pagination_metadata(total), data=result)
+
 
 
 def get_all(session: Session) -> Sequence[User]:

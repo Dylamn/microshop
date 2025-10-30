@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core import security
 from app.models import User
-from app.schemas.user import UserUpdatePassword, UserDB
+from app.schemas.user import UserDB, UserUpdatePassword
 
 
 def get_user_by_email(session: Session, email: str) -> User | None:

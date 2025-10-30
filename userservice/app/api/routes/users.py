@@ -1,12 +1,11 @@
 import logging
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, HTTPException, Query, status
 
 from app.api.deps import AuthUser, SessionDep
-from app.models import User
+from app.schemas.pagination import PaginationParams, PaginationResponse
 from app.schemas.user import UserCreate, UserResource, UserUpdate
 from app.services import user_service
 
@@ -15,15 +14,20 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("", response_model=list[UserResource])
-async def index(session: SessionDep, current_user: AuthUser) -> Any:
+@router.get("", response_model=PaginationResponse[UserResource])
+async def index(
+    session: SessionDep,
+    current_user: AuthUser,
+    pagination: Annotated[PaginationParams, Query()]
+) -> Any:
     """
     Gets a list of all registered users.
     """
     logger.debug("Fetching all users.", extra={"actor": current_user.id})
 
-    return user_service.get_all(session)
+    result = user_service.paginate(session, pagination)
 
+    return result
 
 @router.post("", response_model=UserResource, status_code=status.HTTP_201_CREATED)
 async def create(session: SessionDep, current_user: AuthUser, payload: UserCreate) -> Any:
