@@ -2,6 +2,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.pagination import PaginationParams
+
 
 class AddressBase(BaseModel):
     street: str
@@ -23,6 +25,10 @@ class AddressDB(AddressBase):
 
     id: int = Field(..., gt=0)
     user_id: UUID
+
+
+class AddressQueryParams(PaginationParams):
+    user_id: UUID | None = None
 
 
 class AddressResource(AddressBase):
