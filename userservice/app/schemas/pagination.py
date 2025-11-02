@@ -13,9 +13,20 @@ class PaginationMetadata(TypedDict):
     to: int
 
 
+class PaginationResponse[T](BaseModel):
+    total: int
+    per_page: int
+    current_page: int
+    last_page: int
+    from_: int = Field(..., validation_alias=AliasChoices('from', 'from_'), serialization_alias="from")
+    to: int
+
+    data: Sequence[T]
+
+
 class PaginationParams(BaseModel):
     page: int = Field(1, ge=1)
-    per_page: int = Field(10, ge=1)
+    per_page: int = Field(10, ge=1, le=100)
 
     @property
     def get_skip(self) -> int:
@@ -30,6 +41,24 @@ class PaginationParams(BaseModel):
         """
         return (self.page - 1) * self.per_page
 
+    def to_response[TSource, TTarget](
+        self,
+        data: Sequence[TSource],
+        total: int
+    ) -> PaginationResponse[TTarget]:
+        """
+        Transforms a sequence of source objects (Models)
+        into a paginated response containing target objects (Resources).
+
+        Args:
+            data (Sequence[TSource]): The data sequence to be transformed into resources.
+            total (int): The total number of available items.
+
+        Returns:
+            PaginationResponse[TTarget]: A paginated response including metadata and transformed data.
+        """
+        return PaginationResponse(**self.get_pagination_metadata(total), data=data)
+
     def get_pagination_metadata(self, total: int = 0) -> PaginationMetadata:
         """
         Generates metadata for pagination based on the total number of records available.
@@ -42,23 +71,12 @@ class PaginationParams(BaseModel):
         """
         total = total or 0
         from_ = self.get_skip + 1 if total else 0
-
+        to = from_ + self.per_page - 1
         return {
             "total": total,
             "per_page": self.per_page,
             "current_page": self.page,
             "last_page": (total // self.per_page + (1 if total % self.per_page else 0)) or 1,
             "from_": from_,
-            "to": self.get_skip + self.per_page if self.get_skip + self.per_page < total else total
+            "to": to
         }
-
-
-class PaginationResponse[T](BaseModel):
-    total: int
-    per_page: int
-    current_page: int
-    last_page: int
-    from_: int = Field(..., validation_alias=AliasChoices('from', 'from_'), serialization_alias="from")
-    to: int
-
-    data: Sequence[T]

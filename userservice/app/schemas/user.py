@@ -37,12 +37,21 @@ class UserDB(UserBase):
     addresses: list["AddressDB"] = []
 
 
-class UserResource(BaseModel):
+class UserCollectionResource(BaseModel):
     """
-    Represents the response model for a user.
+    Represents a user object in a collection.
+
+    This object does not extend any relations.
     """
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     username: str
     email: EmailStr
 
+
+class UserResource(UserCollectionResource):
+    """
+    Represents the response model for a user.
+    """
     addresses: list[AddressResource] = []

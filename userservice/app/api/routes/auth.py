@@ -10,7 +10,8 @@ from app.core import security
 from app.core.config import settings
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResource, UserUpdatePassword
-from app.services import auth_service, user_service
+from app.services import auth_service
+from app.services.user_service import UserServiceDep
 
 logger = logging.getLogger(__name__)
 
@@ -37,18 +38,22 @@ async def login(
             detail="Incorrect email or password"
         )
 
-    access_token_expires = timedelta(settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     token = security.create_access_token(user.id, access_token_expires)
 
     return Token(access_token=token, token_type="bearer")
 
 
 @router.post("/register")
-async def register(session: SessionDep, payload: UserCreate) -> Token:
+async def register(
+    session: SessionDep,
+    user_service: UserServiceDep,
+    payload: UserCreate
+) -> Token:
     logger.debug(f"Registering user: {payload.model_dump_json()}")
-    user = user_service.create_user(session, payload)
-    access_token_expires = timedelta(settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = security.create_access_token(user.id, access_token_expires)
+    new_user = user_service.create(session, payload)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token = security.create_access_token(new_user.id, access_token_expires)
 
     return Token(access_token=token, token_type="bearer")
 
@@ -70,7 +75,7 @@ async def me(user: AuthUser) -> Any:
     return user
 
 
-@router.get("/logout")
+@router.post("/logout")
 async def logout() -> dict[str, str]:
     logger.debug("Logging out user...")
     return {"message": "Goodbye World"}

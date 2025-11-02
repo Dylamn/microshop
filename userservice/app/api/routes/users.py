@@ -6,18 +6,24 @@ from fastapi import APIRouter, HTTPException, Query, status
 
 from app.api.deps import AuthUser, SessionDep
 from app.schemas.pagination import PaginationParams, PaginationResponse
-from app.schemas.user import UserCreate, UserResource, UserUpdate
-from app.services import user_service
+from app.schemas.user import (
+    UserCollectionResource,
+    UserCreate,
+    UserResource,
+    UserUpdate,
+)
+from app.services.user_service import UserServiceDep
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("", response_model=PaginationResponse[UserResource])
+@router.get("", response_model=PaginationResponse[UserCollectionResource])
 async def index(
     session: SessionDep,
     current_user: AuthUser,
+    user_service: UserServiceDep,
     pagination: Annotated[PaginationParams, Query()]
 ) -> Any:
     """
@@ -29,24 +35,35 @@ async def index(
 
     return result
 
+
 @router.post("", response_model=UserResource, status_code=status.HTTP_201_CREATED)
-async def create(session: SessionDep, current_user: AuthUser, payload: UserCreate) -> Any:
+async def create(
+    session: SessionDep,
+    current_user: AuthUser,
+    user_service: UserServiceDep,
+    payload: UserCreate
+) -> Any:
     """
     Creates a new user based on the provided information.
     """
     logger.info("Creating a new user.", extra={"actor": current_user.id, "payload": payload})
-    new_user = user_service.create_user(session, payload)
+    new_user = user_service.create(session, payload)
 
-    return new_user
+    return new_user.todict()
 
 
 @router.get("/{user_id}", response_model=UserResource)
-async def show(session: SessionDep, current_user: AuthUser, user_id: UUID) -> Any:
+async def show(
+    session: SessionDep,
+    current_user: AuthUser,
+    user_service: UserServiceDep,
+    user_id: UUID
+) -> Any:
     """
     Fetches a specific user resource based on their unique identifier.
     """
     logger.debug(f"Fetching user with id: {user_id}", extra={"actor": current_user.id})
-    user = user_service.find_user_by_id(session, user_id)
+    user = user_service.find_by_id(session, user_id)
 
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -59,6 +76,7 @@ async def show(session: SessionDep, current_user: AuthUser, user_id: UUID) -> An
 async def update(
     session: SessionDep,
     current_user: AuthUser,
+    user_service: UserServiceDep,
     user_id: UUID,
     payload: UserUpdate
 ) -> Any:
@@ -68,7 +86,7 @@ async def update(
     This endpoint does not handle password updates. Rather, use the `/auth/password` endpoint.
     """
     logger.info(f"Updating user with id: {user_id}", extra={"actor": current_user.id, "payload": payload})
-    updated_user = user_service.update_user(session, user_id, payload)
+    updated_user = user_service.update(session, user_id, payload)
 
     if updated_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -77,7 +95,12 @@ async def update(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def destroy(session: SessionDep, current_user: AuthUser, user_id: UUID) -> None:
+async def destroy(
+    session: SessionDep,
+    user_service: UserServiceDep,
+    current_user: AuthUser,
+    user_id: UUID
+) -> None:
     """
     Deletes a specific user resource based on their unique identifier.
 
@@ -87,4 +110,4 @@ async def destroy(session: SessionDep, current_user: AuthUser, user_id: UUID) ->
     """
     logger.info(f"Deleting user with id: {user_id}", extra={"actor": current_user.id})
 
-    user_service.delete_user(session, user_id)
+    user_service.delete(session, user_id)

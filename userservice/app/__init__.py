@@ -7,7 +7,11 @@ from .core.logging_config import setup_logging
 
 setup_logging(settings.ENVIRONMENT)
 
-app = FastAPI()
+app = FastAPI(
+    title="Userservice API",
+    description="API for managing users of the Microshop system",
+    version=settings.VERSION,
+)
 
 app.add_middleware(CorrelationIdMiddleware, header_name='X-Request-ID')
 

@@ -46,7 +46,7 @@ class Settings(BaseSettings):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def VERSION(self) -> str | None:
+    def VERSION(self) -> str:
         # Get the version from the pyproject.toml file
         from tomllib import load
         project_dir = Path(__file__).parent.parent.parent
@@ -54,7 +54,15 @@ class Settings(BaseSettings):
             pyproject = load(f)
         app_version = pyproject["project"]["version"]
 
-        return app_version if isinstance(app_version, str) else None
+        if not isinstance(app_version, str):
+            raise ValueError(
+                "Application version not found. Please check `pyproject.toml` file."
+            )
+
+        if self.ENVIRONMENT == "development":
+            app_version += "-dev"
+
+        return app_version
 
 
 settings = Settings()

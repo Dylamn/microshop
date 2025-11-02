@@ -20,5 +20,5 @@ class User(Base, TimestampMixin):
     password: Mapped[str] = mapped_column(String(100), nullable=True)
 
     addresses: Mapped[list["Address"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+        back_populates="user", cascade="all, delete-orphan", lazy="raise"
     )

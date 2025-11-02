@@ -1,6 +1,7 @@
 from typing import Any, Self
 
 from pydantic import BaseModel
+from sqlalchemy import inspect
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -47,3 +48,29 @@ class Base(DeclarativeBase):
                 setattr(self, key, value)
 
         return self
+
+    def todict(self) -> dict[str, Any]:
+        """
+        A to `dict` method that extend relationships only if they're loaded.
+        """
+        result: dict[str, Any] = {}
+
+        state = inspect(self)
+
+        for attr in state.mapper.column_attrs:
+            result[attr.key] = getattr(self, attr.key)
+
+        for relationship in state.mapper.relationships:
+            if relationship.key in state.dict and relationship.key not in state.unloaded:
+                result[relationship.key] = getattr(self, relationship.key)
+
+                if isinstance(result[relationship.key], list):
+                    result[relationship.key] = [
+                        item.todict() if hasattr(item, 'todict') else item
+                        for item in result[relationship.key]
+                    ]
+                # If it's a single object, convert it recursively'
+                elif result[relationship.key] is not None and hasattr(result[relationship.key], 'todict'):
+                    result[relationship.key] = result[relationship.key].todict()
+
+        return result
