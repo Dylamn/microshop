@@ -2,9 +2,10 @@ import logging
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 
 from app.api.deps import AuthUser, SessionDep
+from app.core.errors.exceptions import NotFoundException
 from app.schemas.pagination import PaginationParams, PaginationResponse
 from app.schemas.user import (
     UserCollectionResource,
@@ -66,7 +67,7 @@ async def show(
     user = user_service.find_by_id(session, user_id)
 
     if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundException(detail="User not found")
 
     return user
 
@@ -89,7 +90,7 @@ async def update(
     updated_user = user_service.update(session, user_id, payload)
 
     if updated_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundException(detail="User not found")
 
     return updated_user
 

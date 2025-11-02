@@ -1,9 +1,10 @@
 import logging
 from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 
 from app.api.deps import AuthUser, SessionDep
+from app.core.errors.exceptions import NotFoundException, PermissionException
 from app.schemas.address import (
     AddressCreate,
     AddressQueryParams,
@@ -54,8 +55,7 @@ async def create(
     if current_user.id != payload.user_id:
         # Currently, as there's no permission mechanism,
         # we simply disallow the creation of addresses for other users.
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN, detail="User cannot create address for another user")
+        raise PermissionException(detail="User cannot create address for another user")
 
     new_address = address_service.create(session, payload)
 
@@ -76,7 +76,7 @@ async def show(
     address = address_service.find_by_id(session, address_id)
 
     if address is None or address.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Address not found")
+        raise NotFoundException(detail="Address not found")
 
     return address
 
@@ -98,7 +98,7 @@ async def update(
     address = address_service.update(session, address_id, payload, owner=current_user.id)
 
     if address is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Address not found")
+        raise NotFoundException(detail="Address not found")
 
     return address
 

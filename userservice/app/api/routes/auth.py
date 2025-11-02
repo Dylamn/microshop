@@ -2,12 +2,13 @@ import logging
 from datetime import timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.deps import AuthUser, SessionDep
 from app.core import security
 from app.core.config import settings
+from app.core.errors.exceptions import AuthorizationException
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResource, UserUpdatePassword
 from app.services import auth_service
@@ -33,7 +34,7 @@ async def login(
     )
 
     if not user:
-        raise HTTPException(
+        raise AuthorizationException(
             status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password"
         )
