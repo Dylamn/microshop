@@ -35,8 +35,11 @@ class Settings(BaseSettings):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def DATABASE_URL(self) -> PostgresDsn:
-        return PostgresDsn.build(
+    def DATABASE_URL(self) -> str:
+        if self.ENVIRONMENT == "testing":
+            return "sqlite:///:memory:"
+
+        database_dsn = PostgresDsn.build(
             scheme="postgresql+psycopg",
             username=self.DB_USER,
             password=self.DB_PASSWORD,
@@ -44,6 +47,7 @@ class Settings(BaseSettings):
             port=self.DB_PORT,
             path=self.DB_NAME,
         )
+        return str(database_dsn)
 
     @computed_field  # type: ignore[prop-decorator]
     @property
