@@ -1,4 +1,5 @@
 from pathlib import Path
+from tomllib import load
 from typing import Literal
 
 from joserfc.jwk import OctKey
@@ -14,7 +15,7 @@ class Settings(BaseSettings):
     )
 
     SECRET_KEY: str
-    ENVIRONMENT: Literal["development", "staging", "production"] = "development"
+    ENVIRONMENT: Literal["development", "testing", "staging", "production"] = "development"
 
     JWT_ALGORITHM: str
     JWT_SECRET: OctKey
@@ -48,7 +49,6 @@ class Settings(BaseSettings):
     @property
     def VERSION(self) -> str:
         # Get the version from the pyproject.toml file
-        from tomllib import load
         project_dir = Path(__file__).parent.parent.parent
         with open(project_dir / "pyproject.toml", "rb") as f:
             pyproject = load(f)
