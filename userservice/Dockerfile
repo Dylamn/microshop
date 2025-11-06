@@ -1,4 +1,5 @@
-FROM ghcr.io/astral-sh/uv:python3.14-trixie
+# ---------- Base stage ----------
+FROM ghcr.io/astral-sh/uv:python3.14-trixie AS base
 
 # Setup a non-root user
 RUN groupadd --system --gid 999 nonroot \
@@ -34,10 +35,23 @@ ENTRYPOINT []
 RUN mkdir -p /var/log/userservice \
   && chown nonroot /var/log/userservice
 
+# ---------- Devel stage ----------
+FROM base AS devel
+
 # Use the non-root user to run our application
 USER nonroot
-
 
 # Uses `fastapi dev` to enable hot-reloading when the `watch` sync occurs
 # Uses `--host 0.0.0.0` to allow access from outside the container
 CMD ["fastapi", "dev", "--host", "0.0.0.0", "app"]
+
+# ---------- Test stage ----------
+FROM base AS test
+
+# Install dev dependencies
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --dev
+
+VOLUME /opt/.venv
+
+CMD ["pytest", "-v"]
