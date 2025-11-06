@@ -2,6 +2,7 @@ services:
   userservice:
     build:
       context: ./userservice
+      target: devel
     ports:
       - "8005:8000"
     depends_on:
@@ -15,6 +16,17 @@ services:
             - .venv
         - action: rebuild
           path: ./userservice/uv.lock
+
+  test-userservice:
+    build:
+      context: ./userservice
+      target: test
+
+    volumes:
+      - ./userservice:/opt
+      - venv-userservice:/opt/.venv
+
+    profiles: ["testing"]
 
   keycloak:
     image: keycloak/keycloak:26.4
@@ -73,3 +85,4 @@ volumes:
   redis_data:
     name: ms-redis_data
     external: true
+  venv-userservice:
