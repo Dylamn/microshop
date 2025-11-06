@@ -48,7 +48,7 @@ async def api_validation_exception_handler(request: Request, exc: RequestValidat
     problem = ApiError(
         type="validation_error",
         title="Validation error",
-        status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status=status.HTTP_422_UNPROCESSABLE_CONTENT,
         detail="The given data is not valid.",
         instance=str(request.url.path),
         timestamp=datetime.now(UTC),
@@ -56,7 +56,7 @@ async def api_validation_exception_handler(request: Request, exc: RequestValidat
     )
 
     return ORJSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content=problem.model_dump(mode="json", exclude_none=True)
     )
 

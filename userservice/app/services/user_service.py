@@ -67,7 +67,7 @@ class UserService:
         if payload.email and payload.email != user.email:
             if self.repository.exists_by_email(session, str(payload.email)):
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail="Email already taken")
 
         user.update(payload)
