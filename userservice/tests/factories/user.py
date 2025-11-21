@@ -13,7 +13,9 @@ class UserFactory(BaseFactory):
     id = factory.LazyFunction(uuid.uuid4)
 
     username = factory.Faker("first_name")
-    email = factory.LazyAttribute(lambda o: '%s@example.com' % o.username)
+    email = factory.LazyAttributeSequence(
+        lambda obj, n: f"{obj.username.lower()}{n}@example.com"
+    )
 
     password = factory.LazyFunction(
        lambda: hash_password("password")
