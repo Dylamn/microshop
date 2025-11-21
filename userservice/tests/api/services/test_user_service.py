@@ -21,8 +21,6 @@ def service() -> UserService:
 
 def test_create_user_success(db: Session, service: UserService) -> None:
     long_password = secrets.token_urlsafe(32)
-    print(
-        f"Long password: {long_password}")
     payload = UserCreate(username="alice", email="alice@example.com", password=long_password)
     user = service.create(db, payload)
 
@@ -32,6 +30,15 @@ def test_create_user_success(db: Session, service: UserService) -> None:
     # password should be stored hashed
     assert user.password and user.password != long_password
     assert security.verify_password(long_password, user.password)
+
+
+def test_create_hashes_password_and_not_plaintext(db: Session, service: UserService) -> None:
+    pwd = secrets.token_urlsafe(24)
+    payload = UserCreate(username="harry", email="harry@example.com", password=pwd)
+    created = service.create(db, payload)
+
+    assert created.password != pwd
+    assert security.verify_password(pwd, created.password)
 
 
 def test_create_user_email_already_exists(db: Session, service: UserService) -> None:
@@ -109,11 +116,45 @@ def test_delete_user_not_found(db: Session, service: UserService) -> None:
 
 def test_paginate_users(db: Session, service: UserService) -> None:
     # create more than page size
-    for _ in range(7):
-        UserFactory()
+    nb_users = 7
+    UserFactory.create_batch(size=nb_users)
 
     params = PaginationParams(page=1, per_page=5)
     result = service.paginate(db, params)
-
-    assert result.total >= 7
+    print(result)
+    assert result.total >= nb_users
     assert len(result.data) <= 5
+
+
+def test_paginate_respects_page_and_per_page(db: Session, service: UserService) -> None:
+    # Seed predictable number of users
+    nb_users = 12
+    UserFactory.create_batch(size=nb_users)
+
+    # Page 2 with per_page 5 should return 5 items and same total
+    params = PaginationParams(page=2, per_page=5)
+    page2 = service.paginate(db, params)
+
+    assert page2.total >= nb_users
+    assert len(page2.data) == 5
+
+
+def test_find_by_id_returns_none_for_missing_user(db: Session, service: UserService) -> None:
+    missing_id = uuid.uuid4()
+    assert service.find_by_id(db, missing_id) is None
+
+
+def test_update_does_not_change_email_when_same_value(db: Session, service: UserService) -> None:
+    user = UserFactory(email="same@example.com", username="sam")
+    # attempt to set same email; should not trigger uniqueness error
+    update_payload = UserUpdate(email="same@example.com", username="sam2")
+    updated = service.update(db, user.id, update_payload)
+
+    assert updated is not None
+    assert updated.email == "same@example.com"
+    assert updated.username == "sam2"
+
+
+def test_delete_returns_false_when_user_missing(db: Session, service: UserService) -> None:
+    # Ensure behavior explicitly when user does not exist
+    assert service.delete(db, uuid.uuid4()) is False

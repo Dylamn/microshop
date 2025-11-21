@@ -3,12 +3,12 @@ import factory
 
 from app.core.security import hash_password
 from app.models.user import User
+from .base import BaseFactory
 
 
-class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
+class UserFactory(BaseFactory):
     class Meta:
         model = User
-        sqlalchemy_session_persistence = "commit"
 
     id = factory.LazyFunction(uuid.uuid4)
 

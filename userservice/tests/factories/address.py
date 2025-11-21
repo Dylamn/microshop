@@ -2,12 +2,12 @@ import factory
 
 from app.models.address import Address
 from tests.factories.user import UserFactory
+from .base import BaseFactory
 
 
-class AddressFactory(factory.alchemy.SQLAlchemyModelFactory):
+class AddressFactory(BaseFactory):
     class Meta:
         model = Address
-        sqlalchemy_session_persistence = "commit"
 
     street = factory.Faker("street_address")
     city = factory.Faker("city")
