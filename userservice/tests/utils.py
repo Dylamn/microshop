@@ -22,10 +22,10 @@ def random_email() -> str:
     """
     Generates and returns a random email address.
 
-    The email address is constructed with a random string for the username and
-    a random string for the domain name, followed by the ".com" TLD.
+    The email address is constructed with a random string for the username
+    and `example` for the domain name, followed by the `.com` TLD.
 
     Returns:
         str: A randomly generated email address.
     """
-    return f"{random_string(8)}@{random_string(8)}.com"
+    return f"{random_string(8)}@example.com"

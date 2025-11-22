@@ -9,6 +9,8 @@ from .config import settings
 
 pwd_context = PasswordHasher()
 
+DUMMY_HASH = pwd_context.hash("dummy_password_for_timing_attack_prevention")
+
 
 def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
     """

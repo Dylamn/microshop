@@ -9,13 +9,17 @@ from app.schemas.user import UserUpdatePassword
 def get_user_by_email(session: Session, email: str) -> User | None:
     return session.query(User).filter(User.email == email).first()
 
+
 def authenticate(session: Session, email: str, password: str) -> User | None:
     db_user = get_user_by_email(session=session, email=email)
 
-    if not db_user:
+    target_password = db_user.password if db_user else security.DUMMY_HASH
+
+    is_password_correct = security.verify_password(password, target_password)
+
+    if not db_user or not is_password_correct:
         return None
-    if not security.verify_password(password, db_user.password):
-        return None
+
     return db_user
 
 
@@ -30,7 +34,8 @@ def update_user_password(session: Session, user: User, passwords: UserUpdatePass
     elif passwords.new_password != passwords.confirm_password:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
     elif passwords.current_password == passwords.new_password:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="New password cannot be the same as the current password")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                            detail="New password cannot be the same as the current password")
 
     hash_password = security.hash_password(passwords.new_password)
     session.add(user.update({"password": hash_password}))
