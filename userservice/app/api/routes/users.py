@@ -88,7 +88,7 @@ async def update(
     if updated_user is None:
         raise NotFoundException(detail="User not found")
 
-    return updated_user
+    return updated_user.todict()
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

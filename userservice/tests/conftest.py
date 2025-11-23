@@ -6,9 +6,10 @@ from sqlalchemy import create_engine, StaticPool, Engine
 from sqlalchemy.orm import Session
 
 from app import app
+from app.api.deps.auth import get_current_user
 from app.api.deps.db import get_db
 from app.core.config import settings, Settings
-from app.models import Base
+from app.models import Base, User
 from tests.factories import AddressFactory, UserFactory
 
 
@@ -46,6 +47,12 @@ def setup_database(db_engine: Engine) -> None:
 def db(db_engine: Engine) -> Generator[Session]:
     """
     Create a new database session for each test and roll it back after the test.
+
+    Args:
+        db_engine: The database engine used to create the test session.
+
+    Yields:
+        Generator[Session]: A database session object.
     """
     with Session(bind=db_engine) as session:
         yield session
@@ -56,6 +63,12 @@ def client(db: Session) -> Generator[TestClient]:
     """
     Provide a TestClient that uses the test database session.
     Override the get_db dependency to use the test session.
+
+    Args:
+        db: The test database session.
+
+    Yields:
+        A TestClient instance.
     """
 
     def override_get_db() -> Generator[Session]:
@@ -65,3 +78,27 @@ def client(db: Session) -> Generator[TestClient]:
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def auth_client(client: TestClient) -> Generator[TestClient]:
+    """
+    Authenticates and provides a test client for making API requests.
+
+    This function is responsible for authenticating a test client for testing
+    purposes. It yields the authenticated client to the caller and ensures
+    proper teardown after testing is complete.
+
+    Args:
+        client: The test client instance used to interact with the API.
+
+    Yields:
+        Generator[TestClient]: An authenticated test client instance.
+    """
+
+    def override_get_current_user() -> User:
+        return UserFactory()
+
+    app.dependency_overrides[get_current_user] = override_get_current_user
+
+    yield client
