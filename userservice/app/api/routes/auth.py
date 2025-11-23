@@ -24,7 +24,6 @@ async def login(
     session: SessionDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> Token:
-    # TODO: Protect against timing attacks
     logger.debug(f"Authentication request for user `{form_data.username}`")
 
     user = auth_service.authenticate(
@@ -47,12 +46,11 @@ async def login(
 
 @router.post("/register")
 async def register(
-    session: SessionDep,
     user_service: UserServiceDep,
     payload: UserCreate
 ) -> Token:
     logger.debug(f"Registering user: {payload.model_dump_json()}")
-    new_user = user_service.create(session, payload)
+    new_user = user_service.create(payload)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     token = security.create_access_token(new_user.id, access_token_expires)
 

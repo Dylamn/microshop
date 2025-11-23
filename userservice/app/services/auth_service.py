@@ -11,6 +11,20 @@ def get_user_by_email(session: Session, email: str) -> User | None:
 
 
 def authenticate(session: Session, email: str, password: str) -> User | None:
+    """Authenticates a user by verifying the provided email and password.
+
+    This function retrieves a user from the database based on the provided email.
+    If a user is found, it verifies the provided password against the stored hash.
+    If the user does not exist or the password is incorrect, the function returns None.
+
+    Args:
+        session (Session): The database session used to retrieve the user.
+        email (str): The email address of the user attempting to authenticate.
+        password (str): The password provided for authentication.
+
+    Returns:
+        User | None: The authenticated user object if credentials are valid, otherwise None.
+    """
     db_user = get_user_by_email(session=session, email=email)
 
     target_password = db_user.password if db_user else security.DUMMY_HASH

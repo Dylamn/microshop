@@ -19,12 +19,12 @@ class BaseRepository[T: Base]:
     - Basic queries
     """
 
-    def __init__(self, model: type[T]):
+    def __init__(self, model: type[T], session: Session):
         self.model = model
+        self.session = session
 
     def paginate(
         self,
-        session: Session,
         pagination: PaginationParams,
         query: Select[tuple[T]] | None = None,
         unique: bool = False
@@ -33,7 +33,6 @@ class BaseRepository[T: Base]:
         Paginates a query with the given pagination parameters.
 
         Args:
-            session: Database session.
             pagination: Pagination parameters.
             query: Optional pre-built query. If None, selects all from the model.
             unique: If True, returns only unique results. This is meant for queries that
@@ -49,9 +48,9 @@ class BaseRepository[T: Base]:
             func.count(), maintain_column_froms=True
         ).order_by(None)
 
-        total = session.scalar(count_query) or 0
+        total = self.session.scalar(count_query) or 0
         query = query.offset(pagination.get_skip).limit(pagination.per_page)
-        result = session.execute(query).scalars()
+        result = self.session.execute(query).scalars()
 
         if unique:
             result = result.unique()
@@ -60,36 +59,32 @@ class BaseRepository[T: Base]:
 
     def find_by_id(
         self,
-        session: Session,
         ident: Any,
         *,
         options: list[ORMOption] | None = None
     ) -> T | None:
         """Finds an entity by its primary key."""
-        return session.get(self.model, ident, options=options)
+        return self.session.get(self.model, ident, options=options)
 
-    def find_all(self, session: Session) -> Sequence[T]:
+    def find_all(self) -> Sequence[T]:
         """Retrieves all entities."""
         stmt = select(self.model)
-        return session.execute(stmt).scalars().all()
+        return self.session.execute(stmt).scalars().all()
 
-    @classmethod
-    def create(cls, session: Session, entity: T) -> T:
+    def create(self, entity: T) -> T:
         """Creates a new entity."""
-        session.add(entity)
-        session.commit()
-        session.refresh(entity)
+        self.session.add(entity)
+        self.session.commit()
+        self.session.refresh(entity)
         return entity
 
-    @classmethod
-    def update(cls, session: Session, entity: T) -> T:
+    def update(self, entity: T) -> T:
         """Updates an existing entity by committing changes to the database."""
-        session.commit()
-        session.refresh(entity)
+        self.session.commit()
+        self.session.refresh(entity)
         return entity
 
-    @classmethod
-    def delete(cls, session: Session, entity: T) -> None:
+    def delete(self, entity: T) -> None:
         """Deletes an entity."""
-        session.delete(entity)
-        session.commit()
+        self.session.delete(entity)
+        self.session.commit()
