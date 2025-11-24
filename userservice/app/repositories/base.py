@@ -80,11 +80,13 @@ class BaseRepository[T: Base]:
 
     def update(self, entity: T) -> T:
         """Updates an existing entity by committing changes to the database."""
+        self.session.add(entity)
         self.session.commit()
         self.session.refresh(entity)
         return entity
 
     def delete(self, entity: T) -> None:
         """Deletes an entity."""
+        # TODO: Handle exceptions
         self.session.delete(entity)
         self.session.commit()

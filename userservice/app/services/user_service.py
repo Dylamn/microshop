@@ -32,7 +32,6 @@ class UserService:
             session: SQLAlchemy database session.
         """
 
-        self.session = session
         self.repository = UserRepository(session)
 
     def paginate(

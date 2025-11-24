@@ -72,6 +72,10 @@ class PaginationParams(BaseModel):
         total = total or 0
         from_ = self.get_skip + 1 if total else 0
         to = from_ + self.per_page - 1
+
+        if to > total:
+            to = total
+
         return {
             "total": total,
             "per_page": self.per_page,

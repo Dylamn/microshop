@@ -6,6 +6,7 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.deps import SessionDep
 from app.models import Address
 from app.repositories.address_repository import AddressRepository
 from app.schemas.address import (
@@ -19,27 +20,28 @@ from app.schemas.pagination import PaginationResponse
 logger = logging.getLogger(__name__)
 
 
-def get_address_service() -> "AddressService":
-    return AddressService()
+def get_address_service(session: SessionDep) -> "AddressService":
+    return AddressService(session)
 
 
 AddressServiceDep = Annotated["AddressService", Depends(get_address_service)]
 
 
 class AddressService:
-    def __init__(self) -> None:
-        self.repository = AddressRepository()
+    def __init__(self, session: Session) -> None:
+        """
+        Initialize `AddressService` with a database session.
 
-    def paginate(
-        self,
-        session: Session,
-        criteria: AddressQueryParams
-    ) -> PaginationResponse[AddressResource]:
+        Args:
+            session: SQLAlchemy database session.
+        """
+        self.repository = AddressRepository(session)
+
+    def paginate(self, criteria: AddressQueryParams) -> PaginationResponse[AddressResource]:
         """
         Paginates a query of Address entities based on given filters and pagination parameters.
 
         Args:
-            session (Session): SQLAlchemy session object used to interact with the database.
             criteria (AddressQueryParams): Object containing pagination and filters.
 
         Returns:
@@ -51,33 +53,28 @@ class AddressService:
         if criteria.user_id:
             query = query.where(Address.user_id == criteria.user_id)
 
-        addresses, total = self.repository.paginate(session, criteria, query)
+        addresses, total = self.repository.paginate(criteria, query)
 
         return criteria.to_response(addresses, total)
 
+    def find_by_id(self, address_id: int) -> Address | None:
+        return self.repository.find_by_id(address_id)
 
-    def find_by_id(self, session: Session, address_id: int) -> Address | None:
-        return self.repository.find_by_id(session, address_id)
-
-
-    def create(self, session: Session, payload: AddressCreate) -> Address:
+    def create(self, payload: AddressCreate) -> Address:
         """
         Creates a new address entry in the database based on the provided payload.
 
         Args:
-            session (Session): Database session used for the operation.
             payload (AddressCreate): Data required to create a new address.
 
         Returns:
             The created Address model instance.
         """
         db_address = Address(**payload.model_dump())
-        return self.repository.create(session, db_address)
-
+        return self.repository.create(db_address)
 
     def update(
         self,
-        session: Session,
         address_id: int,
         payload: AddressUpdate,
         *,
@@ -92,8 +89,6 @@ class AddressService:
         returns the updated address. If the address cannot be found, it returns None.
 
         Args:
-            session (Session): The database session to be used for querying and
-                committing changes.
             address_id (UUID): The unique identifier of the address to update.
             payload (AddressUpdate): The data used to update the address.
             owner (UUID): The unique identifier of the user who owns the address.
@@ -102,7 +97,7 @@ class AddressService:
         Returns:
             The updated address object if the address is found, otherwise None.
         """
-        address = self.repository.find_by_id(session, address_id)
+        address = self.repository.find_by_id(address_id)
         if not address:
             return None
 
@@ -111,14 +106,12 @@ class AddressService:
                 status.HTTP_403_FORBIDDEN,
                 detail="You are not authorized to update this address")
 
+        # Update address instance
         address.update(payload)
-        session.commit()
-        session.refresh(address)
 
-        return address
+        return self.repository.update(address)
 
-    def delete(
-        self, session: Session, address_id: int, *, owner: UUID) -> None:
+    def delete(self, address_id: int, *, owner: UUID) -> None:
         """
         Deletes an address record from the database corresponding to the given address ID.
 
@@ -126,13 +119,12 @@ class AddressService:
         address ID. It ensures the proper handling of database operations and maintains data integrity.
 
         Args:
-            session: The active database session to be used for executing the delete operation.
             address_id: The unique identifier of the address to be deleted.
             owner: Must be the identifier of the user who owns the address.
         Returns:
             None
         """
-        address = self.repository.find_by_id(session, address_id)
+        address = self.repository.find_by_id(address_id)
         if not address:
             return
 
@@ -141,5 +133,4 @@ class AddressService:
                 status.HTTP_403_FORBIDDEN,
                 detail="You are not authorized to delete this address")
 
-        session.delete(address)
-        session.commit()
+        self.repository.delete(address)

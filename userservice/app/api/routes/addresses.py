@@ -21,7 +21,6 @@ router = APIRouter(prefix="/addresses", tags=["addresses"])
 
 @router.get("", response_model=PaginationResponse[AddressResource])
 async def index(
-    session: SessionDep,
     current_user: AuthUser,
     address_service: AddressServiceDep,
     query_params: Annotated[AddressQueryParams, Query()]
@@ -32,7 +31,6 @@ async def index(
     \f
 
     Args:
-        session: Dependency-injected database session used to query the database.
         current_user: The authenticated user for whom the addresses will be fetched.
         address_service: Dependency-injected service instance for address operations.
         query_params: Pagination and filtering parameters for the query.
@@ -40,12 +38,11 @@ async def index(
         list[AddressResource]: A list of serialized address resources.
     """
     logger.debug(f"Fetching addresses for user {current_user.id}", extra={"actor": current_user.id})
-    return address_service.paginate(session, query_params)
+    return address_service.paginate(query_params)
 
 
 @router.post("", response_model=AddressResource, status_code=status.HTTP_201_CREATED)
 async def create(
-    session: SessionDep,
     current_user: AuthUser,
     address_service: AddressServiceDep,
     payload: AddressCreate
@@ -57,14 +54,13 @@ async def create(
         # we simply disallow the creation of addresses for other users.
         raise PermissionException(detail="User cannot create address for another user")
 
-    new_address = address_service.create(session, payload)
+    new_address = address_service.create(payload)
 
     return new_address
 
 
 @router.get("/{address_id}", response_model=AddressResource)
 async def show(
-    session: SessionDep,
     current_user: AuthUser,
     address_service: AddressServiceDep,
     address_id: int
@@ -73,7 +69,7 @@ async def show(
     Fetches and returns details of a specific address based on the provided address ID.
     """
     logger.debug(f"Fetching address with id: {address_id}", extra={"actor": current_user.id})
-    address = address_service.find_by_id(session, address_id)
+    address = address_service.find_by_id(address_id)
 
     if address is None or address.user_id != current_user.id:
         raise NotFoundException(detail="Address not found")
@@ -84,7 +80,6 @@ async def show(
 @router.patch("/{address_id}", response_model=AddressResource)
 @router.put("/{address_id}", response_model=AddressResource)
 async def update(
-    session: SessionDep,
     current_user: AuthUser,
     address_service: AddressServiceDep,
     address_id: int,
@@ -95,7 +90,7 @@ async def update(
     """
     logger.info(f"Updating address with id: {address_id}", extra={"actor": current_user.id, "payload": payload})
 
-    address = address_service.update(session, address_id, payload, owner=current_user.id)
+    address = address_service.update(address_id, payload, owner=current_user.id)
 
     if address is None:
         raise NotFoundException(detail="Address not found")
@@ -105,7 +100,6 @@ async def update(
 
 @router.delete("/{address_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def destroy(
-    session: SessionDep,
     current_user: AuthUser,
     address_service: AddressServiceDep,
     address_id: int
@@ -115,4 +109,4 @@ async def destroy(
     """
     logger.info(f"Deleting address with id: {address_id}", extra={"actor": current_user.id})
 
-    address_service.delete(session, address_id, owner=current_user.id)
+    address_service.delete(address_id, owner=current_user.id)
