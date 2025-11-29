@@ -2,7 +2,7 @@ from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, StaticPool, Engine
+from sqlalchemy import create_engine, StaticPool, Engine, event, text
 from sqlalchemy.orm import Session
 
 from app import app
@@ -28,6 +28,18 @@ def db_engine(override_settings: Settings) -> Generator[Engine]:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool
     )
+
+    # Enable foreign key constraints for SQLite
+    with engine.connect() as connection:
+        connection.execute(text("PRAGMA foreign_keys=ON"))
+
+    # To ensure it's enabled for every connection provided by the pool (crucial for SQLite)
+    @event.listens_for(engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
     yield engine
 
 

@@ -33,3 +33,4 @@ class AddressQueryParams(PaginationParams):
 
 class AddressResource(AddressBase):
     id: int
+    user_id: UUID

@@ -3,7 +3,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Query, status
 
-from app.api.deps import AuthUser, SessionDep
+from app.api.deps import AuthUser
 from app.core.errors.exceptions import NotFoundException, PermissionException
 from app.schemas.address import (
     AddressCreate,

@@ -33,7 +33,6 @@ def test_index_returns_addresses_of_a_given_user(auth_client: TestClient) -> Non
 
     response = auth_client.get("/addresses", params=params)
 
-    print(response.json())
     assert response.status_code == 200
 
     data = response.json()

@@ -1,8 +1,7 @@
+import secrets
 import uuid
 
 import pytest
-import secrets
-
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -14,7 +13,7 @@ from app.services.user_service import UserService
 from tests.factories import UserFactory
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def service(db: Session) -> UserService:
     return UserService(db)
 
@@ -105,6 +104,7 @@ def test_delete_user_success(service: UserService) -> None:
     assert service.find_by_id(user.id) is not None
     assert service.delete(user.id) is True
     assert service.find_by_id(user.id) is None
+
 
 def test_delete_user_not_found(service: UserService) -> None:
     import uuid

@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import SessionDep
@@ -71,7 +72,20 @@ class AddressService:
             The created Address model instance.
         """
         db_address = Address(**payload.model_dump())
-        return self.repository.create(db_address)
+        try:
+            self.repository.create(db_address)
+        except IntegrityError as exc:
+            err_msg = str(exc.orig)
+
+            if "23503" in err_msg or "FOREIGN KEY" in err_msg:
+                raise HTTPException(
+                    status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    detail="Unable to create address. The given user does not exist."
+                )
+
+            raise
+
+        return db_address
 
     def update(
         self,
