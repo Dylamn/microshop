@@ -1,5 +1,6 @@
 import uuid
 
+import factory
 import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -105,16 +106,9 @@ def test_update_all_fields_of_address_success(service: AddressService) -> None:
     existing_address = AddressFactory()
     old_fields = {**existing_address.__dict__}
     user = existing_address.user
-    fake_data = AddressFactory.build()
+    fake_data = factory.build(dict, FACTORY_CLASS=AddressFactory)
 
-    payload = AddressUpdate(
-        street=fake_data.street,
-        city=fake_data.city,
-        zipcode=fake_data.zipcode,
-        state=fake_data.state,
-    )
-
-    print("HAAAA", old_fields, payload)
+    payload = AddressUpdate(**fake_data)
 
     updated_address = service.update(existing_address.id, payload, owner=user.id)
 
@@ -156,13 +150,8 @@ def test_update_partial_fields_of_address_success(service: AddressService) -> No
 
 def test_update_address_with_invalid_user_id(service: AddressService) -> None:
     existing_address = AddressFactory()
-    fake_data = AddressFactory.build()
-    payload = AddressUpdate(
-        street=fake_data.street,
-        city=fake_data.city,
-        zipcode=fake_data.zipcode,
-        state=fake_data.state,
-    )
+    fake_data = factory.build(dict, FACTORY_CLASS=AddressFactory)
+    payload = AddressUpdate(**fake_data)
 
     with pytest.raises(
         HTTPException,
@@ -173,15 +162,10 @@ def test_update_address_with_invalid_user_id(service: AddressService) -> None:
 
 
 def test_update_address_not_found(service: AddressService) -> None:
-    fake_data = AddressFactory.build()
-    payload = AddressUpdate(
-        street=fake_data.street,
-        city=fake_data.city,
-        zipcode=fake_data.zipcode,
-        state=fake_data.state,
-    )
+    fake_data = factory.build(dict, FACTORY_CLASS=AddressFactory)
+    payload = AddressUpdate(**fake_data)
 
-    address = service.update(0, payload, owner=fake_data.user.id)
+    address = service.update(0, payload, owner=fake_data["user"].id)
 
     assert address is None
 
@@ -202,7 +186,7 @@ def test_delete_address_not_found(service: AddressService) -> None:
     assert service.delete(0, owner=user.id) is None
 
 
-def test_delete_address_with_invalid_user_id(service: AddressService) -> None:
+def test_delete_address_with_invalid_user_id_is_forbidden(service: AddressService) -> None:
     address = AddressFactory()
     another_user = UserFactory()
 
