@@ -44,7 +44,7 @@ async def login(
     return Token(access_token=token, token_type="bearer")
 
 
-@router.post("/register")
+@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=Token)
 async def register(
     user_service: UserServiceDep,
     payload: UserCreate
