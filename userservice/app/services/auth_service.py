@@ -49,7 +49,7 @@ def update_user_password(session: Session, user: User, passwords: UserUpdatePass
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
     elif passwords.current_password == passwords.new_password:
         raise HTTPException(status.HTTP_400_BAD_REQUEST,
-                            detail="New password cannot be the same as the current password")
+                            detail="New password cannot be the same as the current one")
 
     hash_password = security.hash_password(passwords.new_password)
     session.add(user.update({"password": hash_password}))
