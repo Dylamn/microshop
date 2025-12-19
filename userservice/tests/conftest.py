@@ -93,7 +93,27 @@ def client(db: Session) -> Generator[TestClient]:
 
 
 @pytest.fixture(scope="function")
-def auth_client(client: TestClient) -> Generator[TestClient]:
+def current_user(request: pytest.FixtureRequest) -> User:
+    """
+    Provide a user.
+
+    This fixture generates and returns a user using the UserFactory, which can be used
+    as the authenticated user for testing within the given function scope.
+    It can be configured with ``@pytest.mark.parametrize("current_user", {...}, indirect=True)``
+
+    Args:
+        request: pytest.FixtureRequest instance representing the fixture request context.
+
+    Returns:
+        User: An instance of the User class representing the current authenticated user.
+    """
+    params: dict = getattr(request, "param", {})
+
+    return UserFactory(**params)
+
+
+@pytest.fixture(scope="function")
+def auth_client(client: TestClient, current_user: User) -> Generator[TestClient]:
     """
     Authenticates and provides a test client for making API requests.
 
@@ -102,6 +122,7 @@ def auth_client(client: TestClient) -> Generator[TestClient]:
     proper teardown after testing is complete.
 
     Args:
+        current_user: The user to be authenticated for testing.
         client: The test client instance used to interact with the API.
 
     Yields:
@@ -109,7 +130,7 @@ def auth_client(client: TestClient) -> Generator[TestClient]:
     """
 
     def override_get_current_user() -> User:
-        return UserFactory()
+        return current_user
 
     app.dependency_overrides[get_current_user] = override_get_current_user
 
