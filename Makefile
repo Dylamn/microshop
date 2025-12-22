@@ -14,7 +14,7 @@ logs:
 	docker compose logs -f $(s)
 
 test:
-	docker compose --profile testing run --rm test-$(s) pytest $(args) --maxfail 1
+	docker compose --profile testing run --rm test-$(s) pytest $(args)
 
 debug:
 	docker compose exec -it $(s) bash

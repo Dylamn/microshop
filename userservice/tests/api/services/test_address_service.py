@@ -88,7 +88,7 @@ def test_create_address_success(service: AddressService) -> None:
     assert address.user_id == payload.user_id
 
 
-def test_create_address_with_invalid_user_id(service: AddressService, db: Session) -> None:
+def test_create_address_with_invalid_user_id(service: AddressService) -> None:
     fake_data = AddressFactory.build()
     payload = AddressCreate(
         street=fake_data.street,
