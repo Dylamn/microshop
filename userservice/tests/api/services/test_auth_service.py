@@ -123,7 +123,7 @@ def test_update_user_password_fails_with_new_password_same_as_current_password(d
         auth_service.update_user_password(db, user, passwords)
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == "New password cannot be the same as the current password"
+    assert exc.value.detail == "New password cannot be the same as the current one"
 
 
 def test_update_user_with_new_password_length_lower_than_password_policy(db: Session) -> None:
