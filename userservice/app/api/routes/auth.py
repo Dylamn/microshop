@@ -72,9 +72,3 @@ async def change_password(
 @router.get("/me", response_model=UserResource)
 async def me(user: AuthUser) -> Any:
     return user
-
-
-@router.post("/logout")
-async def logout() -> dict[str, str]:
-    logger.debug("Logging out user...")
-    return {"message": "Goodbye World"}

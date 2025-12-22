@@ -246,11 +246,3 @@ def test_me_without_authentication_is_rejected(client: TestClient) -> None:
     assert response.status_code == 401
 
     assert response.json()["detail"] == "Not authenticated"
-
-
-def test_logout_when_authenticated_is_a_success(auth_client: TestClient) -> None:
-    assert False
-
-
-def test_logout_without_authentication_is_rejected(client: TestClient) -> None:
-    assert False
