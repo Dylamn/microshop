@@ -107,7 +107,12 @@ def current_user(request: pytest.FixtureRequest) -> User:
     Returns:
         User: An instance of the User class representing the current authenticated user.
     """
-    params: dict = getattr(request, "param", {})
+
+    # By default, we generate explicit empty addresses for the user
+    # Otherwise, when using this fixture without parametrization
+    # and interacting with endpoints that return addresses,
+    # an error will be raised due to relationship ``lazy=raise`` preload argument.
+    params: dict = getattr(request, "param", {"addresses": []})
 
     return UserFactory(**params)
 

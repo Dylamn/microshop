@@ -228,12 +228,24 @@ def test_change_password_when_not_authenticated_fails(client: TestClient) -> Non
     response = client.post("/auth/change-password", json=payload)
     assert response.status_code == 401
 
-def test_me_when_authenticated_is_a_success(auth_client: TestClient) -> None:
-    assert False
+
+def test_me_when_authenticated_is_a_success(auth_client: TestClient, current_user: User) -> None:
+    response = auth_client.get("/auth/me")
+
+    assert response.status_code == 200
+
+    body = response.json()
+    assert body["username"] == current_user.username
+    assert body["email"] == current_user.email
+    assert "password" not in body
 
 
 def test_me_without_authentication_is_rejected(client: TestClient) -> None:
-    assert False
+    response = client.get("/auth/me")
+
+    assert response.status_code == 401
+
+    assert response.json()["detail"] == "Not authenticated"
 
 
 def test_logout_when_authenticated_is_a_success(auth_client: TestClient) -> None:
