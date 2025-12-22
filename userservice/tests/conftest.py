@@ -2,7 +2,7 @@ from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, StaticPool, Engine, event, text
+from sqlalchemy import create_engine, StaticPool, Engine, event, text, Connection
 from sqlalchemy.orm import Session
 
 from app import app
@@ -43,6 +43,14 @@ def db_engine(override_settings: Settings) -> Generator[Engine]:
     yield engine
 
 
+@pytest.fixture(scope="session")
+def db_connection(db_engine: Engine) -> Generator[Connection]:
+    """Create a database connection for the entire test session."""
+    connection = db_engine.connect()
+    yield connection
+    connection.close()
+
+
 @pytest.fixture(autouse=True)
 def set_session_for_factories(db: Session) -> None:
     UserFactory._meta.sqlalchemy_session = db
@@ -56,18 +64,24 @@ def setup_database(db_engine: Engine) -> None:
 
 
 @pytest.fixture(scope="function")
-def db(db_engine: Engine) -> Generator[Session]:
+def db(db_connection: Connection) -> Generator[Session]:
     """
     Create a new database session for each test and roll it back after the test.
 
     Args:
-        db_engine: The database engine used to create the test session.
+        db_connection: The database connection object.
 
     Yields:
         Generator[Session]: A database session object.
     """
-    with Session(bind=db_engine) as session:
-        yield session
+    transaction = db_connection.begin_nested()
+    session = Session(bind=db_connection)
+
+    yield session
+
+    session.close()
+    if transaction.is_active:
+        transaction.rollback()
 
 
 @pytest.fixture(scope="function")
