@@ -56,7 +56,7 @@ class AddressService:
 
         addresses, total = self.repository.paginate(criteria, query)
 
-        return criteria.to_response(addresses, total)
+        return criteria.to_response(addresses, total, transform_fn=AddressResource.model_validate)
 
     def find_by_id(self, address_id: int) -> Address | None:
         return self.repository.find_by_id(address_id)

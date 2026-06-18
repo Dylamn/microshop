@@ -9,7 +9,7 @@ from app.core.security import hash_password
 from app.models import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.pagination import PaginationParams, PaginationResponse
-from app.schemas.user import UserCreate, UserResource, UserUpdate
+from app.schemas.user import UserCollectionResource, UserCreate, UserUpdate
 
 
 def get_user_service(session: SessionDep) -> "UserService":
@@ -35,18 +35,17 @@ class UserService:
         self.repository = UserRepository(session)
 
     def paginate(
-        self,
-        pagination: PaginationParams
-    ) -> PaginationResponse[UserResource]:
+        self, pagination: PaginationParams
+    ) -> PaginationResponse[UserCollectionResource]:
         """Paginates users."""
         users, total = self.repository.paginate(pagination)
-        return pagination.to_response(users, total)
+        return pagination.to_response(
+            users, total, transform_fn=UserCollectionResource.model_validate
+        )
 
     def find_by_id(self, user_id: UUID) -> User | None:
         """Retrieves a user by ID."""
-        return self.repository.find_by_id(
-            user_id, options=[joinedload(User.addresses)]
-        )
+        return self.repository.find_by_id(user_id, options=[joinedload(User.addresses)])
 
     def create(self, user_in: UserCreate) -> User:
         """
@@ -56,7 +55,8 @@ class UserService:
         if self.repository.exists_by_email(str(user_in.email)):
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail="Email already registered")
+                detail="Email already registered",
+            )
 
         data = user_in.model_dump(exclude_unset=True, exclude_defaults=True)
         password = hash_password(user_in.password.get_secret_value())
@@ -75,7 +75,8 @@ class UserService:
             if self.repository.exists_by_email(str(payload.email)):
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                    detail="Email already taken")
+                    detail="Email already taken",
+                )
 
         user.update(payload)
         return self.repository.update(user)

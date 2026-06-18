@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from typing import TypedDict
 
 from pydantic import AliasChoices, BaseModel, Field
@@ -44,7 +44,9 @@ class PaginationParams(BaseModel):
     def to_response[TSource, TTarget](
         self,
         data: Sequence[TSource],
-        total: int
+        total: int,
+        *,
+        transform_fn: Callable[[TSource], TTarget]
     ) -> PaginationResponse[TTarget]:
         """
         Transforms a sequence of source objects (Models)
@@ -53,11 +55,16 @@ class PaginationParams(BaseModel):
         Args:
             data (Sequence[TSource]): The data sequence to be transformed into resources.
             total (int): The total number of available items.
+            transform_fn (Callable[[TSource], TTarget]):
+                A function to transform each source object into a target object.
+                Primarily used for converting Models (SQLAlchemy) to Resources (Pydantic).
 
         Returns:
             PaginationResponse[TTarget]: A paginated response including metadata and transformed data.
         """
-        return PaginationResponse(**self.get_pagination_metadata(total), data=data)
+        transformed_data = [transform_fn(item) for item in data]
+
+        return PaginationResponse(**self.get_pagination_metadata(total), data=transformed_data)
 
     def get_pagination_metadata(self, total: int = 0) -> PaginationMetadata:
         """
