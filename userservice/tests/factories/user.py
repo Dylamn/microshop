@@ -1,3 +1,4 @@
+from typing import Any
 import uuid
 import factory
 
@@ -10,20 +11,21 @@ class UserFactory(BaseFactory):
     class Meta:
         model = User
 
-    id = factory.LazyFunction(uuid.uuid4)
+    id: uuid.UUID = factory.LazyFunction(uuid.uuid4)
 
-    username = factory.Faker("first_name")
-    email = factory.LazyAttributeSequence(
+    username: str = factory.Faker("first_name")
+    email: str = factory.LazyAttributeSequence(
         lambda obj, n: f"{obj.username.lower()}{n}@example.com"
     )
 
-    password = factory.LazyFunction(
+    password: str = factory.LazyFunction(
        lambda: hash_password("password")
     )
 
     @classmethod
-    def _create(cls, model_class, *args, **kwargs):
+    def _create(cls, model_class, *args, **kwargs: Any):
         # Handle the password argument before creating the user
         if "password" in kwargs:
             kwargs["password"] = hash_password(kwargs.pop("password"))
+
         return super()._create(model_class, *args, **kwargs)

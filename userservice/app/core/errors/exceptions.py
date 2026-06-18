@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import Request, status
 
-from app.core.errors.schemas import ApiError
+from app.core.errors.schemas import ApiError, ApiErrorDetail
 
 
 class ApiException(Exception):
@@ -27,6 +27,9 @@ class ApiException(Exception):
 
     def to_api_error(self, request: Request | None = None) -> ApiError:
         instance = str(request.url.path) if request else None
+        errors = [
+            ApiErrorDetail.model_validate(error) for error in self.errors
+        ] if self.errors else None
 
         return ApiError(
             type=self.type,
@@ -34,7 +37,7 @@ class ApiException(Exception):
             status=self.status_code,
             detail=self.detail,
             instance=instance,
-            errors=self.errors
+            errors=errors
         )
 
     def tojson(self, request: Request | None = None) -> dict[str, Any]:

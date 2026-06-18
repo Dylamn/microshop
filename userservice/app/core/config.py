@@ -69,4 +69,4 @@ class Settings(BaseSettings):
         return app_version
 
 
-settings = Settings()
+settings = Settings()  # ty:ignore[missing-argument]

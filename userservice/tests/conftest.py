@@ -15,7 +15,7 @@ from tests.factories import AddressFactory, UserFactory
 
 @pytest.fixture(scope="session", autouse=True)
 def override_settings() -> Generator[Settings]:
-    settings.__init__(_env_file=".env.testing")
+    settings.__init__(_env_file=".env.testing")  # ty: ignore[missing-argument, unknown-argument]
     print(f"Switching to {settings.ENVIRONMENT} environment")
 
     yield settings
@@ -53,8 +53,8 @@ def db_connection(db_engine: Engine) -> Generator[Connection]:
 
 @pytest.fixture(autouse=True)
 def set_session_for_factories(db: Session) -> None:
-    UserFactory._meta.sqlalchemy_session = db
-    AddressFactory._meta.sqlalchemy_session = db
+    UserFactory._meta.sqlalchemy_session = db  # ty: ignore[unresolved-attribute]
+    AddressFactory._meta.sqlalchemy_session = db  # ty: ignore[unresolved-attribute]
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -113,7 +113,7 @@ def current_user(request: pytest.FixtureRequest) -> User:
 
     This fixture generates and returns a user using the UserFactory, which can be used
     as the authenticated user for testing within the given function scope.
-    It can be configured with ``@pytest.mark.parametrize("current_user", {...}, indirect=True)``
+    It can be configured with `@pytest.mark.parametrize("current_user", {...}, indirect=True)`
 
     Args:
         request: pytest.FixtureRequest instance representing the fixture request context.
@@ -125,10 +125,10 @@ def current_user(request: pytest.FixtureRequest) -> User:
     # By default, we generate explicit empty addresses for the user
     # Otherwise, when using this fixture without parametrization
     # and interacting with endpoints that return addresses,
-    # an error will be raised due to relationship ``lazy=raise`` preload argument.
+    # an error will be raised due to relationship `lazy=raise` preload argument.
     params: dict = getattr(request, "param", {"addresses": []})
 
-    return UserFactory(**params)
+    return UserFactory(**params)  # ty: ignore[invalid-return-type]
 
 
 @pytest.fixture(scope="function")

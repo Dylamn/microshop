@@ -20,7 +20,11 @@ def service(db: Session) -> UserService:
 
 def test_create_user_success(service: UserService) -> None:
     long_password = secrets.token_urlsafe(32)
-    payload = UserCreate(username="alice", email="alice@example.com", password=long_password)
+    payload = UserCreate.model_validate({
+        "username": "alice",
+        "email": "alice@example.com",
+        "password": long_password
+    })
     user = service.create(payload)
 
     assert isinstance(user, User)
@@ -33,7 +37,11 @@ def test_create_user_success(service: UserService) -> None:
 
 def test_create_hashes_password_and_not_plaintext(service: UserService) -> None:
     pwd = secrets.token_urlsafe(24)
-    payload = UserCreate(username="harry", email="harry@example.com", password=pwd)
+    payload = UserCreate.model_validate({
+        "username": "harry",
+        "email": "harry@example.com",
+        "password": pwd
+    })
     created = service.create(payload)
 
     assert created.password != pwd
@@ -42,7 +50,11 @@ def test_create_hashes_password_and_not_plaintext(service: UserService) -> None:
 
 def test_create_user_email_already_exists(service: UserService) -> None:
     UserFactory(email="dup@example.com")
-    payload = UserCreate(username="bob", email="dup@example.com", password=secrets.token_urlsafe(32))
+    payload = UserCreate.model_validate({
+        "username": "bob",
+        "email": "dup@example.com",
+        "password": secrets.token_urlsafe(32)
+    })
 
     with pytest.raises(HTTPException) as exc:
         service.create(payload)
@@ -119,7 +131,7 @@ def test_paginate_users(service: UserService) -> None:
 
     params = PaginationParams(page=1, per_page=5)
     result = service.paginate(params)
-    print(result)
+
     assert result.total >= nb_users
     assert len(result.data) <= 5
 

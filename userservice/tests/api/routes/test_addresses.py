@@ -1,4 +1,4 @@
-from starlette.testclient import TestClient
+from fastapi.testclient import TestClient
 
 from tests.factories import AddressFactory, UserFactory
 
@@ -29,7 +29,7 @@ def test_index_returns_addresses_of_a_given_user(auth_client: TestClient) -> Non
     nb_other_addresses = 3
     AddressFactory.create_batch(size=nb_user_addresses, user=user)
     AddressFactory.create_batch(size=nb_other_addresses)
-    params = {"user_id": user.id}
+    params = {"user_id": str(user.id)}
 
     response = auth_client.get("/addresses", params=params)
 

@@ -1,3 +1,4 @@
+from app.models import User
 import pytest
 from fastapi import HTTPException
 from pydantic_core import ValidationError
@@ -18,7 +19,7 @@ def test_get_user_by_email_returns_none_for_missing_user(db: Session) -> None:
 
 def test_get_user_by_email_returns_an_existing_user(db: Session) -> None:
     email = "test@example.com"
-    UserFactory(email=email)
+    UserFactory.create(email=email)
 
     found = auth_service.get_user_by_email(db, email)
 
@@ -38,7 +39,7 @@ def test_authenticate_returns_none_for_non_existing_user(db: Session) -> None:
 def test_authenticate_returns_user_that_exist(db: Session) -> None:
     email = random_email()
     password = random_string(16)
-    UserFactory(email=email, password=password)
+    UserFactory.create(email=email, password=password)
 
     user = auth_service.authenticate(db, email, password)
 
@@ -49,7 +50,7 @@ def test_authenticate_returns_user_that_exist(db: Session) -> None:
 def test_authenticate_returns_none_for_wrong_password(db: Session) -> None:
     email = random_email()
     wrong_password = random_string(16)
-    UserFactory(email=email, password=random_string(16))
+    UserFactory.create(email=email, password=random_string(16))
 
     user = auth_service.authenticate(db, email, wrong_password)
 
@@ -59,7 +60,7 @@ def test_authenticate_returns_none_for_wrong_password(db: Session) -> None:
 def test_update_user_password_success(db: Session) -> None:
     current_password = random_string(16)
     new_password = random_string(16)
-    user = UserFactory(password=current_password)
+    user: User = UserFactory.create(password=current_password)
 
     passwords = UserUpdatePassword(
         current_password=current_password,
@@ -74,7 +75,7 @@ def test_update_user_password_success(db: Session) -> None:
 
 
 def test_update_user_password_fails_with_wrong_current_password(db: Session) -> None:
-    user = UserFactory(password=random_string(16))
+    user: User = UserFactory.create(password=random_string(16))
     new_password = random_string(16)
 
     passwords = UserUpdatePassword(
@@ -92,7 +93,7 @@ def test_update_user_password_fails_with_wrong_current_password(db: Session) -> 
 
 def test_update_user_password_fails_with_mismatched_new_passwords(db: Session) -> None:
     current_password = random_string(16)
-    user = UserFactory(password=current_password)
+    user: User = UserFactory.create(password=current_password)
     new_password = random_string(16)
 
     passwords = UserUpdatePassword(
@@ -110,7 +111,7 @@ def test_update_user_password_fails_with_mismatched_new_passwords(db: Session) -
 
 def test_update_user_password_fails_with_new_password_same_as_current_password(db: Session) -> None:
     current_password = random_string(16)
-    user = UserFactory(password=current_password)
+    user: User = UserFactory.create(password=current_password)
     new_password = current_password
 
     passwords = UserUpdatePassword(
@@ -127,7 +128,7 @@ def test_update_user_password_fails_with_new_password_same_as_current_password(d
 
 
 def test_update_user_with_new_password_length_lower_than_password_policy(db: Session) -> None:
-    user = UserFactory(password=random_string(15))
+    user = UserFactory.create(password=random_string(15))
     new_password = random_string(15)
 
     with pytest.raises(ValidationError) as exc:
