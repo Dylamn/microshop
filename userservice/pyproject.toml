@@ -23,6 +23,7 @@ dev = [
     "mypy>=1.18.2",
     "pytest>=8.4.2",
     "ruff>=0.14.2",
+    "ty>=0.0.44",
     "types-pyyaml>=6.0.12.20250915",
 ]
 
@@ -53,6 +54,12 @@ ignore = [
     "W191",  # indentation contains tabs
     "B904",  # Allow raising exceptions without from e, for HTTPException
 ]
+
+[[tool.ty.overrides]]
+include = ["tests/factories/**"]
+
+[tool.ty.overrides.rules]
+invalid-assignment = "ignore"
 
 [tool.pytest.ini_options]
 pythonpath = "."
