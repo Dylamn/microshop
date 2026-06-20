@@ -22,6 +22,7 @@ dependencies = [
 dev = [
     "factory-boy>=3.3.3",
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
     "pytest-env>=1.1.5",
     "pytest-mock>=3.15.1",
     "ruff>=0.14.2",
@@ -34,21 +35,21 @@ exclude = [".venv", "migrations", "tests"]
 
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "I", # isort
+    "B", # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
     "ARG001", # unused arguments in functions
-    "T201",   # print statements are not allowed
+    "T201", # print statements are not allowed
 ]
 ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-    "W191",  # indentation contains tabs
-    "B904",  # Allow raising exceptions without from e, for HTTPException
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "W191", # indentation contains tabs
+    "B904", # Allow raising exceptions without from e, for HTTPException
 ]
 
 [[tool.ty.overrides]]
@@ -61,4 +62,21 @@ invalid-assignment = "ignore"
 pythonpath = "."
 env = [
     "ENV_FILE=.env.testing",
+]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+exclude_also = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
 ]

@@ -16,6 +16,9 @@ logs:
 test:
 	docker compose --profile testing run --rm test-$(s) pytest $(args)
 
+test\:cov:
+	docker compose --profile testing run --rm test-$(s) pytest --cov --cov-report=html $(args)
+
 debug:
 	docker compose exec -it $(s) bash
 
