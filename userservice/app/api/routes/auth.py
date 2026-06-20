@@ -5,12 +5,12 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.api.deps import AuthUser, SessionDep, SettingsDep
+from app.api.deps import AuthUser, SettingsDep
 from app.core import security
 from app.core.errors.exceptions import AuthorizationException
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResource, UserUpdatePassword
-from app.services import auth_service
+from app.services.auth_service import AuthServiceDep
 from app.services.user_service import UserServiceDep
 
 logger = logging.getLogger(__name__)
@@ -20,14 +20,13 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login/access-token")
 async def login(
-    session: SessionDep,
+    auth_service: AuthServiceDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     settings: SettingsDep,
 ) -> Token:
     logger.debug(f"Authentication request for user `{form_data.username}`")
 
     user = auth_service.authenticate(
-        session,
         email=form_data.username,
         password=form_data.password
     )
@@ -60,14 +59,14 @@ async def register(
 
 @router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
 async def change_password(
-    session: SessionDep,
+    auth_service: AuthServiceDep,
     current_user: AuthUser,
     passwords: UserUpdatePassword
 ) -> None:
     logger.debug("User password update", extra={"actor": current_user.id})
 
     auth_service.update_user_password(
-        session, current_user, passwords
+        current_user, passwords
     )
 
 @router.get("/me", response_model=UserResource)
