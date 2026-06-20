@@ -24,8 +24,8 @@ app = FastAPI(
 app.add_middleware(CorrelationIdMiddleware, header_name='X-Request-ID')
 
 # Register custom exception handlers here...
-app.add_exception_handler(RequestValidationError, api_validation_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(AuthorizationException, api_authorization_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(ApiException, api_exception_handler)  # type: ignore[arg-type]
+app.add_exception_handler(RequestValidationError, api_validation_exception_handler)  # ty: ignore[invalid-argument-type]
+app.add_exception_handler(AuthorizationException, api_authorization_exception_handler)  # ty: ignore[invalid-argument-type]
+app.add_exception_handler(ApiException, api_exception_handler)  # ty: ignore[invalid-argument-type]
 
 app.include_router(router)

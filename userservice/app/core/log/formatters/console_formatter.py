@@ -27,7 +27,7 @@ class ConsoleFormatter(logging.Formatter):
             record.asctime,
             record.levelname.ljust(8),
             record.name,
-            record.correlation_id,  # type: ignore[attr-defined]
+            record.correlation_id,  # ty: ignore[unresolved-attribute]
             record.getMessage()
         ])
 
