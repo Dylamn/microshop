@@ -1,10 +1,15 @@
+import os
+from functools import lru_cache
 from pathlib import Path
 from tomllib import load
-from typing import Literal
+from typing import Annotated, Literal
 
+from fastapi import Depends
 from joserfc.jwk import OctKey
 from pydantic import PostgresDsn, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+type AppEnv = Literal["development", "testing", "staging", "production"]
 
 
 class Settings(BaseSettings):
@@ -15,7 +20,7 @@ class Settings(BaseSettings):
     )
 
     SECRET_KEY: str
-    ENVIRONMENT: Literal["development", "testing", "staging", "production"] = "development"
+    ENVIRONMENT: AppEnv = "development"
 
     JWT_ALGORITHM: str
     JWT_SECRET: OctKey
@@ -31,7 +36,6 @@ class Settings(BaseSettings):
     @classmethod
     def convert_secret_to_octkey(cls, v: str) -> OctKey:
         return OctKey.import_key(v)
-
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -69,4 +73,10 @@ class Settings(BaseSettings):
         return app_version
 
 
-settings = Settings()  # ty:ignore[missing-argument]
+@lru_cache
+def get_settings() -> Settings:
+    env_file = os.getenv("ENV_FILE", ".env")
+    return Settings(_env_file=env_file)  # ty:ignore[missing-argument, unknown-argument]
+
+
+SettingsDep = Annotated[Settings, Depends(get_settings)]

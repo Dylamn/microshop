@@ -18,8 +18,8 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from app.models import Base  # type: ignore[import-not-found]
-from app.core.config import settings  # type: ignore[import-not-found]
+from app.models import Base
+from app.core.config import get_settings
 
 target_metadata = Base.metadata
 
@@ -31,7 +31,7 @@ target_metadata = Base.metadata
 
 def get_database_url() -> str:
     """Get the configured database URL from the environment."""
-    return str(settings.DATABASE_URL)
+    return str(get_settings().DATABASE_URL)
 
 
 def process_revision_directives(

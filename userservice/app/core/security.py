@@ -5,7 +5,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from joserfc import jwt
 
-from .config import settings
+from .config import get_settings
 
 pwd_context = PasswordHasher()
 
@@ -26,11 +26,12 @@ def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
     Returns:
         str: The encoded JWT as a string.
     """
+    current_settings = get_settings()
     expires_at = datetime.now(UTC) + expires_delta
-    jwt_header = {"alg": settings.JWT_ALGORITHM}
+    jwt_header = {"alg": current_settings.JWT_ALGORITHM}
     jwt_payload = {"exp": expires_at, "sub": str(subject)}
 
-    return jwt.encode(jwt_header, jwt_payload, key=settings.JWT_SECRET)
+    return jwt.encode(jwt_header, jwt_payload, key=current_settings.JWT_SECRET)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

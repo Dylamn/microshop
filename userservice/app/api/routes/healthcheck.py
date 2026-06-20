@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.config import settings
+from app.api.deps import SettingsDep
 from app.db import engine
 from app.schemas.healthcheck import (
     HealthContextResponse,
@@ -46,7 +46,7 @@ async def ready() -> JSONResponse:
             conn.execute(text("SELECT 1;"))
         status.database = ServiceStatus.OK
     except SQLAlchemyError as e:
-        logger.error(f"Database connection error: {e}")
+        logger.error("Database connection error.", exc_info=e)
         status.database = ServiceStatus.UNAVAILABLE
 
     http_status = 200 if status.is_ready else 503
@@ -55,7 +55,7 @@ async def ready() -> JSONResponse:
 
 
 @router.get("/details", response_model=HealthContextResponse)
-async def details() -> JSONResponse:
+async def details(settings: SettingsDep) -> JSONResponse:
     """Returns internal service metadata (non-sensitive)."""
     health_ctx = HealthContextResponse.model_validate({
         "service": "userservice",

@@ -7,7 +7,7 @@ from joserfc.errors import InvalidTokenError
 from sqlalchemy.orm import lazyload
 
 from app.api.deps.db import SessionDep
-from app.core.config import settings
+from app.core.config import SettingsDep
 from app.core.errors.exceptions import AuthorizationException
 from app.models import User
 from app.schemas.token import TokenClaims
@@ -19,7 +19,11 @@ reusable_oauth2 = OAuth2PasswordBearer(
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
+def get_current_user(
+    session: SessionDep,
+    token: TokenDep,
+    settings: SettingsDep,
+) -> User:
     try:
         decoded_token = jwt.decode(
             token, key=settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]

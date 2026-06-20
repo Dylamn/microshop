@@ -5,9 +5,8 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.api.deps import AuthUser, SessionDep
+from app.api.deps import AuthUser, SessionDep, SettingsDep
 from app.core import security
-from app.core.config import settings
 from app.core.errors.exceptions import AuthorizationException
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResource, UserUpdatePassword
@@ -22,7 +21,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/login/access-token")
 async def login(
     session: SessionDep,
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    settings: SettingsDep,
 ) -> Token:
     logger.debug(f"Authentication request for user `{form_data.username}`")
 
@@ -44,10 +44,11 @@ async def login(
     return Token(access_token=token, token_type="bearer")
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=Token)
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     user_service: UserServiceDep,
-    payload: UserCreate
+    payload: UserCreate,
+    settings: SettingsDep,
 ) -> Token:
     logger.debug(f"Registering user: {payload.model_dump_json()}")
     new_user = user_service.create(payload)

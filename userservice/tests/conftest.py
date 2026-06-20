@@ -8,23 +8,16 @@ from sqlalchemy.orm import Session
 from app import app
 from app.api.deps.auth import get_current_user
 from app.api.deps.db import get_db
-from app.core.config import settings, Settings
+from app.core.config import get_settings
 from app.models import Base, User
 from tests.factories import AddressFactory, UserFactory
 
 
-@pytest.fixture(scope="session", autouse=True)
-def override_settings() -> Generator[Settings]:
-    settings.__init__(_env_file=".env.testing")  # ty: ignore[missing-argument, unknown-argument]
-    print(f"Switching to {settings.ENVIRONMENT} environment")
-
-    yield settings
-
-
 @pytest.fixture(scope="session")
 def db_engine(override_settings: Settings) -> Generator[Engine]:
+    settings = get_settings()
     engine = create_engine(
-        override_settings.DATABASE_URL,
+        settings.DATABASE_URL,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool
     )
@@ -44,7 +37,7 @@ def db_engine(override_settings: Settings) -> Generator[Engine]:
 
 
 @pytest.fixture(scope="session")
-def db_connection(db_engine: Engine) -> Generator[Connection]:
+def db_connection(db_engine: Engine) -> Generator[Connection, None, None]:
     """Create a database connection for the entire test session."""
     connection = db_engine.connect()
     yield connection
@@ -64,7 +57,7 @@ def setup_database(db_engine: Engine) -> None:
 
 
 @pytest.fixture(scope="function")
-def db(db_connection: Connection) -> Generator[Session]:
+def db(db_connection: Connection) -> Generator[Session, None, None]:
     """
     Create a new database session for each test and roll it back after the test.
 

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 
 from .api import router
-from .core.config import settings
+from .core.config import Settings, get_settings
 from .core.errors.exceptions import ApiException, AuthorizationException
 from .core.errors.handlers import (
     api_authorization_exception_handler,
@@ -11,6 +11,8 @@ from .core.errors.handlers import (
     api_validation_exception_handler,
 )
 from .core.logging_config import setup_logging
+
+settings = get_settings()
 
 setup_logging(settings.ENVIRONMENT)
 
