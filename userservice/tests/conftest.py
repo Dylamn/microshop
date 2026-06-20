@@ -1,11 +1,11 @@
 from typing import Generator
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool, Engine, event, text, Connection
 from sqlalchemy.orm import Session
 
-from app import app
 from app.api.deps.auth import get_current_user
 from app.api.deps.db import get_db
 from app.core.config import get_settings
@@ -14,7 +14,13 @@ from tests.factories import AddressFactory, UserFactory
 
 
 @pytest.fixture(scope="session")
-def db_engine(override_settings: Settings) -> Generator[Engine]:
+def app() -> FastAPI:
+    from app import create_app
+    return create_app()
+
+
+@pytest.fixture(scope="session")
+def db_engine() -> Generator[Engine, None, None]:
     settings = get_settings()
     engine = create_engine(
         settings.DATABASE_URL,
@@ -78,22 +84,19 @@ def db(db_connection: Connection) -> Generator[Session, None, None]:
 
 
 @pytest.fixture(scope="function")
-def client(db: Session) -> Generator[TestClient]:
+def client(app: FastAPI, db: Session) -> Generator[TestClient, None, None]:
     """
     Provide a TestClient that uses the test database session.
     Override the get_db dependency to use the test session.
 
     Args:
+        app: The FastAPI application fixture.
         db: The test database session.
 
     Yields:
         A TestClient instance.
     """
-
-    def override_get_db() -> Generator[Session]:
-        yield db
-
-    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_db] = lambda: db
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -121,11 +124,11 @@ def current_user(request: pytest.FixtureRequest) -> User:
     # an error will be raised due to relationship `lazy=raise` preload argument.
     params: dict = getattr(request, "param", {"addresses": []})
 
-    return UserFactory(**params)  # ty: ignore[invalid-return-type]
+    return UserFactory.create(**params)
 
 
 @pytest.fixture(scope="function")
-def auth_client(client: TestClient, current_user: User) -> Generator[TestClient]:
+def auth_client(app: FastAPI, client: TestClient, current_user: User) -> Generator[TestClient, None, None]:
     """
     Authenticates and provides a test client for making API requests.
 
@@ -134,16 +137,15 @@ def auth_client(client: TestClient, current_user: User) -> Generator[TestClient]
     proper teardown after testing is complete.
 
     Args:
+        app: The FastAPI application fixture.
         current_user: The user to be authenticated for testing.
         client: The test client instance used to interact with the API.
 
     Yields:
         Generator[TestClient]: An authenticated test client instance.
     """
-
-    def override_get_current_user() -> User:
-        return current_user
-
-    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_current_user] = lambda: current_user
 
     yield client
+
+    app.dependency_overrides.clear()

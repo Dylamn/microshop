@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -14,20 +16,34 @@ from .core.logging_config import setup_logging
 
 settings = get_settings()
 
-setup_logging(settings.ENVIRONMENT)
 
-app = FastAPI(
-    title="Userservice API",
-    description="API for managing users of the Microshop system",
-    version=settings.VERSION,
-)
 
-# Add middlewares below...
-app.add_middleware(CorrelationIdMiddleware, header_name='X-Request-ID')
+def create_app(settings_obj: Settings | None = None) -> FastAPI:
+    current_settings = settings_obj or get_settings()
 
-# Register custom exception handlers here...
-app.add_exception_handler(RequestValidationError, api_validation_exception_handler)  # ty: ignore[invalid-argument-type]
-app.add_exception_handler(AuthorizationException, api_authorization_exception_handler)  # ty: ignore[invalid-argument-type]
-app.add_exception_handler(ApiException, api_exception_handler)  # ty: ignore[invalid-argument-type]
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        setup_logging(current_settings.ENVIRONMENT)
+        yield
 
-app.include_router(router)
+    app = FastAPI(
+        title="Userservice API",
+        description="API for managing users of the Microshop system",
+        version=current_settings.VERSION,
+        lifespan=lifespan,
+    )
+
+    # Add middlewares below...
+    app.add_middleware(CorrelationIdMiddleware, header_name='X-Request-ID')
+
+    # Register custom exception handlers here...
+    app.add_exception_handler(RequestValidationError, api_validation_exception_handler)  # ty: ignore[invalid-argument-type]
+    app.add_exception_handler(AuthorizationException, api_authorization_exception_handler)  # ty: ignore[invalid-argument-type]
+    app.add_exception_handler(ApiException, api_exception_handler)  # ty: ignore[invalid-argument-type]
+
+    app.include_router(router)
+
+    return app
+
+
+app = create_app()
