@@ -22,7 +22,8 @@ dependencies = [
 dev = [
     "factory-boy>=3.3.3",
     "mypy>=1.18.2",
-    "pytest>=8.4.2",
+    "pytest>=9.1.1",
+    "pytest-env>=1.1.5",
     "pytest-mock>=3.15.1",
     "ruff>=0.14.2",
     "ty>=0.0.44",
@@ -65,3 +66,6 @@ invalid-assignment = "ignore"
 
 [tool.pytest.ini_options]
 pythonpath = "."
+env = [
+    "ENV_FILE=.env.testing",
+]
