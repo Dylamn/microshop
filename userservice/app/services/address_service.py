@@ -38,7 +38,9 @@ class AddressService:
         """
         self.repository = AddressRepository(session)
 
-    def paginate(self, criteria: AddressQueryParams) -> PaginationResponse[AddressResource]:
+    def paginate(
+        self, criteria: AddressQueryParams
+    ) -> PaginationResponse[AddressResource]:
         """
         Paginates a query of Address entities based on given filters and pagination parameters.
 
@@ -56,7 +58,9 @@ class AddressService:
 
         addresses, total = self.repository.paginate(criteria, query)
 
-        return criteria.to_response(addresses, total, transform_fn=AddressResource.model_validate)
+        return criteria.to_response(
+            addresses, total, transform_fn=AddressResource.model_validate
+        )
 
     def find_by_id(self, address_id: int) -> Address | None:
         return self.repository.find_by_id(address_id)
@@ -80,7 +84,7 @@ class AddressService:
             if "23503" in err_msg or "FOREIGN KEY" in err_msg:
                 raise HTTPException(
                     status.HTTP_422_UNPROCESSABLE_CONTENT,
-                    detail="Unable to create address. The given user does not exist."
+                    detail="Unable to create address. The given user does not exist.",
                 )
 
             raise
@@ -88,11 +92,7 @@ class AddressService:
         return db_address
 
     def update(
-        self,
-        address_id: int,
-        payload: AddressUpdate,
-        *,
-        owner: UUID
+        self, address_id: int, payload: AddressUpdate, *, owner: UUID
     ) -> Address | None:
         """
         Updates an existing address in the database with the provided data.
@@ -118,7 +118,8 @@ class AddressService:
         if address.user_id != owner:
             raise HTTPException(
                 status.HTTP_403_FORBIDDEN,
-                detail="You are not authorized to update this address")
+                detail="You are not authorized to update this address",
+            )
 
         # Update address instance
         address.update(payload)
@@ -145,6 +146,7 @@ class AddressService:
         if address.user_id != owner:
             raise HTTPException(
                 status.HTTP_403_FORBIDDEN,
-                detail="You are not authorized to delete this address")
+                detail="You are not authorized to delete this address",
+            )
 
         self.repository.delete(address)
