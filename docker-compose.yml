@@ -24,7 +24,6 @@ services:
 
     volumes:
       - ./userservice:/opt
-      - venv-userservice:/opt/.venv
 
     profiles: ["testing"]
 
