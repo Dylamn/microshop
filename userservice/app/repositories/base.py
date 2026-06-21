@@ -63,7 +63,22 @@ class BaseRepository[T: Base]:
         *,
         options: list[ORMOption] | None = None
     ) -> T | None:
-        """Finds an entity by its primary key."""
+        """
+        Retrieves a record from the database by its identifier.
+
+        This method attempts to retrieve an entity of the specified model type by
+        its identifier (mainly referred to as its primary key).
+        Additional query options can be passed to customize the retrieval process,
+        like specifying relationships to be loaded (eager/lazy loading).
+
+        Args:
+            ident: The identifier of the record to retrieve.
+            options: A list of ORMOption instances used to alter the query behavior
+                (optional).
+
+        Returns:
+            The record of type `T` if found, otherwise None.
+        """
         return self.session.get(self.model, ident, options=options)
 
     def find_all(self) -> Sequence[T]:
@@ -72,21 +87,56 @@ class BaseRepository[T: Base]:
         return self.session.execute(stmt).scalars().all()
 
     def create(self, entity: T) -> T:
-        """Creates a new entity."""
+        """
+        Creates a new entity in the database.
+
+        Persists an entity into the database session, commits the transaction,
+        and refreshes the entity instance with its latest state from the database.
+
+        Args:
+            entity: The entity object to be created in the database.
+
+        Returns:
+            The created entity, including any updated attributes set by the database.
+        """
         self.session.add(entity)
         self.session.commit()
         self.session.refresh(entity)
         return entity
 
     def update(self, entity: T) -> T:
-        """Updates an existing entity by committing changes to the database."""
+        """
+        Updates an existing entity in the database.
+
+        This method updates the provided entity in the database by adding it to the
+        current session, committing the changes, and refreshing the state of the entity
+        to reflect the latest database state. The updated entity is then returned.
+
+        Args:
+            entity: The entity to be updated in the database.
+
+        Returns:
+            The updated entity after saving changes to the database.
+        """
         self.session.add(entity)
         self.session.commit()
         self.session.refresh(entity)
         return entity
 
     def delete(self, entity: T) -> None:
-        """Deletes an entity."""
+        """
+        Deletes the specified entity from the database.
+
+        This method removes the given entity from the database session and commits
+        the transaction. It is the responsibility of the caller to ensure the entity
+        exists in the session before invoking this method.
+
+        Args:
+            entity: The entity object to be deleted from the database.
+
+        Returns:
+            None
+        """
         # TODO: Handle exceptions
         self.session.delete(entity)
         self.session.commit()
