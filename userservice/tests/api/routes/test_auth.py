@@ -209,7 +209,7 @@ def test_change_password_with_new_password_identical_to_current_fails(auth_clien
     }
 
     response = auth_client.post("/auth/change-password", json=payload)
-    print(response.json())
+
     assert response.status_code == 400
     assert response.json()["detail"] == "New password cannot be the same as the current one"
 
