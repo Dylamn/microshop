@@ -23,7 +23,7 @@ router = APIRouter(prefix="/addresses", tags=["addresses"])
 async def index(
     current_user: AuthUser,
     address_service: AddressServiceDep,
-    query_params: Annotated[AddressQueryParams, Query()]
+    query_params: Annotated[AddressQueryParams, Query()],
 ) -> Any:
     """
     Fetches a list of addresses related to the current authenticated user.
@@ -37,17 +37,21 @@ async def index(
     Returns:
         list[AddressResource]: A list of serialized address resources.
     """
-    logger.debug(f"Fetching addresses for user {current_user.id}", extra={"actor": current_user.id})
+    logger.debug(
+        f"Fetching addresses for user {current_user.id}",
+        extra={"actor": current_user.id},
+    )
     return address_service.paginate(query_params)
 
 
 @router.post("", response_model=AddressResource, status_code=status.HTTP_201_CREATED)
 async def create(
-    current_user: AuthUser,
-    address_service: AddressServiceDep,
-    payload: AddressCreate
+    current_user: AuthUser, address_service: AddressServiceDep, payload: AddressCreate
 ) -> Any:
-    logger.info(f"Creating address for user {current_user.id}", extra={"actor": current_user.id, "payload": payload})
+    logger.info(
+        f"Creating address for user {current_user.id}",
+        extra={"actor": current_user.id, "payload": payload},
+    )
 
     if current_user.id != payload.user_id:
         # Currently, as there's no permission mechanism,
@@ -61,14 +65,14 @@ async def create(
 
 @router.get("/{address_id}", response_model=AddressResource)
 async def show(
-    current_user: AuthUser,
-    address_service: AddressServiceDep,
-    address_id: int
+    current_user: AuthUser, address_service: AddressServiceDep, address_id: int
 ) -> Any:
     """
     Fetches and returns details of a specific address based on the provided address ID.
     """
-    logger.debug(f"Fetching address with id: {address_id}", extra={"actor": current_user.id})
+    logger.debug(
+        f"Fetching address with id: {address_id}", extra={"actor": current_user.id}
+    )
     address = address_service.find_by_id(address_id)
 
     if address is None or address.user_id != current_user.id:
@@ -83,12 +87,15 @@ async def update(
     current_user: AuthUser,
     address_service: AddressServiceDep,
     address_id: int,
-    payload: AddressUpdate
+    payload: AddressUpdate,
 ) -> Any:
     """
     Updates the details of an existing address resource identified by the given address ID.
     """
-    logger.info(f"Updating address with id: {address_id}", extra={"actor": current_user.id, "payload": payload})
+    logger.info(
+        f"Updating address with id: {address_id}",
+        extra={"actor": current_user.id, "payload": payload},
+    )
 
     address = address_service.update(address_id, payload, owner=current_user.id)
 
@@ -100,13 +107,13 @@ async def update(
 
 @router.delete("/{address_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def destroy(
-    current_user: AuthUser,
-    address_service: AddressServiceDep,
-    address_id: int
+    current_user: AuthUser, address_service: AddressServiceDep, address_id: int
 ) -> None:
     """
     Deletes a specific address belonging to the authenticated user.
     """
-    logger.info(f"Deleting address with id: {address_id}", extra={"actor": current_user.id})
+    logger.info(
+        f"Deleting address with id: {address_id}", extra={"actor": current_user.id}
+    )
 
     address_service.delete(address_id, owner=current_user.id)

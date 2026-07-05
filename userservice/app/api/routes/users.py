@@ -24,7 +24,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 async def index(
     current_user: AuthUser,
     user_service: UserServiceDep,
-    pagination: Annotated[PaginationParams, Query()]
+    pagination: Annotated[PaginationParams, Query()],
 ) -> Any:
     """
     Gets a list of all registered users.
@@ -38,14 +38,14 @@ async def index(
 
 @router.post("", response_model=UserResource, status_code=status.HTTP_201_CREATED)
 async def create(
-    current_user: AuthUser,
-    user_service: UserServiceDep,
-    payload: UserCreate
+    current_user: AuthUser, user_service: UserServiceDep, payload: UserCreate
 ) -> Any:
     """
     Creates a new user based on the provided information.
     """
-    logger.info("Creating a new user.", extra={"actor": current_user.id, "payload": payload})
+    logger.info(
+        "Creating a new user.", extra={"actor": current_user.id, "payload": payload}
+    )
     new_user = user_service.create(payload)
 
     return new_user.todict()
@@ -53,9 +53,7 @@ async def create(
 
 @router.get("/{user_id}", response_model=UserResource)
 async def show(
-    current_user: AuthUser,
-    user_service: UserServiceDep,
-    user_id: UUID
+    current_user: AuthUser, user_service: UserServiceDep, user_id: UUID
 ) -> Any:
     """
     Fetches a specific user resource based on their unique identifier.
@@ -75,14 +73,17 @@ async def update(
     current_user: AuthUser,
     user_service: UserServiceDep,
     user_id: UUID,
-    payload: UserUpdate
+    payload: UserUpdate,
 ) -> Any:
     """
     Updates a specific user resource based on their unique identifier.
 
     This endpoint does not handle password updates. Rather, use the `/auth/password` endpoint.
     """
-    logger.info(f"Updating user with id: {user_id}", extra={"actor": current_user.id, "payload": payload})
+    logger.info(
+        f"Updating user with id: {user_id}",
+        extra={"actor": current_user.id, "payload": payload},
+    )
     updated_user = user_service.update(user_id, payload)
 
     if updated_user is None:
@@ -93,9 +94,7 @@ async def update(
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def destroy(
-    user_service: UserServiceDep,
-    current_user: AuthUser,
-    user_id: UUID
+    user_service: UserServiceDep, current_user: AuthUser, user_id: UUID
 ) -> None:
     """
     Deletes a specific user resource based on their unique identifier.

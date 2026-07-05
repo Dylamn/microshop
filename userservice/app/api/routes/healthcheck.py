@@ -57,11 +57,13 @@ async def ready() -> JSONResponse:
 @router.get("/details", response_model=HealthContextResponse)
 async def details(settings: SettingsDep) -> JSONResponse:
     """Returns internal service metadata (non-sensitive)."""
-    health_ctx = HealthContextResponse.model_validate({
-        "service": "userservice",
-        "version": settings.VERSION,
-        "environment": settings.ENVIRONMENT,
-        "uptime_seconds": int(asyncio.get_event_loop().time()),
-    })
+    health_ctx = HealthContextResponse.model_validate(
+        {
+            "service": "userservice",
+            "version": settings.VERSION,
+            "environment": settings.ENVIRONMENT,
+            "uptime_seconds": int(asyncio.get_event_loop().time()),
+        }
+    )
 
     return JSONResponse(health_ctx.model_dump())

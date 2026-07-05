@@ -27,7 +27,7 @@ class BaseRepository[T: Base]:
         self,
         pagination: PaginationParams,
         query: Select[tuple[T]] | None = None,
-        unique: bool = False
+        unique: bool = False,
     ) -> tuple[Sequence[T], int]:
         """
         Paginates a query with the given pagination parameters.

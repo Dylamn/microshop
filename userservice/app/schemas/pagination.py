@@ -18,7 +18,9 @@ class PaginationResponse[T](BaseModel):
     per_page: int
     current_page: int
     last_page: int
-    from_: int = Field(..., validation_alias=AliasChoices('from', 'from_'), serialization_alias="from")
+    from_: int = Field(
+        ..., validation_alias=AliasChoices("from", "from_"), serialization_alias="from"
+    )
     to: int
 
     data: Sequence[T]
@@ -46,7 +48,7 @@ class PaginationParams(BaseModel):
         data: Sequence[TSource],
         total: int,
         *,
-        transform_fn: Callable[[TSource], TTarget]
+        transform_fn: Callable[[TSource], TTarget],
     ) -> PaginationResponse[TTarget]:
         """
         Transforms a sequence of source objects (Models)
@@ -64,7 +66,9 @@ class PaginationParams(BaseModel):
         """
         transformed_data = [transform_fn(item) for item in data]
 
-        return PaginationResponse(**self.get_pagination_metadata(total), data=transformed_data)
+        return PaginationResponse(
+            **self.get_pagination_metadata(total), data=transformed_data
+        )
 
     def get_pagination_metadata(self, total: int = 0) -> PaginationMetadata:
         """
@@ -87,7 +91,8 @@ class PaginationParams(BaseModel):
             "total": total,
             "per_page": self.per_page,
             "current_page": self.page,
-            "last_page": (total // self.per_page + (1 if total % self.per_page else 0)) or 1,
+            "last_page": (total // self.per_page + (1 if total % self.per_page else 0))
+            or 1,
             "from_": from_,
-            "to": to
+            "to": to,
         }

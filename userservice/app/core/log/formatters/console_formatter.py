@@ -9,10 +9,10 @@ class ConsoleFormatter(logging.Formatter):
 
     COLORS = {
         "DEBUG": "\033[37m",  # gray
-        "INFO": "\033[36m",   # cyan
-        "WARNING": "\033[33m",# yellow
+        "INFO": "\033[36m",  # cyan
+        "WARNING": "\033[33m",  # yellow
         "ERROR": "\033[31m",  # red
-        "CRITICAL": "\033[41m" # red background
+        "CRITICAL": "\033[41m",  # red background
     }
 
     RESET = "\033[0m"
@@ -23,12 +23,14 @@ class ConsoleFormatter(logging.Formatter):
 
         color = self.COLORS.get(record.levelname, "")
 
-        log_msg = " | ".join([
-            record.asctime,
-            record.levelname.ljust(8),
-            record.name,
-            record.correlation_id,  # ty: ignore[unresolved-attribute]
-            record.getMessage()
-        ])
+        log_msg = " | ".join(
+            [
+                record.asctime,
+                record.levelname.ljust(8),
+                record.name,
+                record.correlation_id,  # ty: ignore[unresolved-attribute]
+                record.getMessage(),
+            ]
+        )
 
         return f"{color}{log_msg}{self.RESET}"

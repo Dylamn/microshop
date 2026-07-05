@@ -14,12 +14,9 @@ from .core.errors.handlers import (
 )
 from .core.logging_config import setup_logging
 
-settings = get_settings()
 
-
-
-def create_app(settings_obj: Settings | None = None) -> FastAPI:
-    current_settings = settings_obj or get_settings()
+def create_app(app_settings: Settings | None = None) -> FastAPI:
+    current_settings = app_settings or get_settings()
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
@@ -34,12 +31,12 @@ def create_app(settings_obj: Settings | None = None) -> FastAPI:
     )
 
     # Add middlewares below...
-    app.add_middleware(CorrelationIdMiddleware, header_name='X-Request-ID')
+    app.add_middleware(CorrelationIdMiddleware, header_name="X-Request-ID")
 
     # Register custom exception handlers here...
-    app.add_exception_handler(RequestValidationError, api_validation_exception_handler)  # ty: ignore[invalid-argument-type]
-    app.add_exception_handler(AuthorizationException, api_authorization_exception_handler)  # ty: ignore[invalid-argument-type]
-    app.add_exception_handler(ApiException, api_exception_handler)  # ty: ignore[invalid-argument-type]
+    app.add_exception_handler(RequestValidationError, api_validation_exception_handler)
+    app.add_exception_handler(AuthorizationException, api_authorization_exception_handler)
+    app.add_exception_handler(ApiException, api_exception_handler)
 
     app.include_router(router)
 

@@ -10,7 +10,7 @@ class Base(DeclarativeBase):
         self,
         data: BaseModel | dict[str, Any],
         *,
-        overrides: dict[str, Any] | None = None
+        overrides: dict[str, Any] | None = None,
     ) -> Self:
         """
         Updates the attributes of the current instance using the data provided in
@@ -61,16 +61,21 @@ class Base(DeclarativeBase):
             result[attr.key] = getattr(self, attr.key)
 
         for relationship in state.mapper.relationships:
-            if relationship.key in state.dict and relationship.key not in state.unloaded:
+            if (
+                relationship.key in state.dict
+                and relationship.key not in state.unloaded
+            ):
                 result[relationship.key] = getattr(self, relationship.key)
 
                 if isinstance(result[relationship.key], list):
                     result[relationship.key] = [
-                        item.todict() if hasattr(item, 'todict') else item
+                        item.todict() if hasattr(item, "todict") else item
                         for item in result[relationship.key]
                     ]
                 # If it's a single object, convert it recursively'
-                elif result[relationship.key] is not None and hasattr(result[relationship.key], 'todict'):
+                elif result[relationship.key] is not None and hasattr(
+                    result[relationship.key], "todict"
+                ):
                     result[relationship.key] = result[relationship.key].todict()
 
         return result

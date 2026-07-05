@@ -12,9 +12,7 @@ from app.core.errors.exceptions import AuthorizationException
 from app.models import User
 from app.schemas.token import TokenClaims
 
-reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl="auth/login/access-token"
-)
+reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="auth/login/access-token")
 
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
@@ -36,7 +34,9 @@ def get_current_user(
 
     user = session.get(User, claims.sub, options=[lazyload(User.addresses)])
     if not user:
-        raise AuthorizationException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise AuthorizationException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     return user
 

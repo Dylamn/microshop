@@ -68,9 +68,7 @@ class AuthService:
 
         return db_user
 
-    def update_user_password(
-        self, user: User, passwords: UserUpdatePassword
-    ) -> None:
+    def update_user_password(self, user: User, passwords: UserUpdatePassword) -> None:
         """
         Updates a user's password with business logic validation.
 

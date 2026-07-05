@@ -27,14 +27,12 @@ async def login(
     logger.debug(f"Authentication request for user `{form_data.username}`")
 
     user = auth_service.authenticate(
-        email=form_data.username,
-        password=form_data.password
+        email=form_data.username, password=form_data.password
     )
 
     if not user:
         raise AuthorizationException(
-            status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect email or password"
+            status.HTTP_400_BAD_REQUEST, detail="Incorrect email or password"
         )
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -65,9 +63,8 @@ async def change_password(
 ) -> None:
     logger.debug("User password update", extra={"actor": current_user.id})
 
-    auth_service.update_user_password(
-        current_user, passwords
-    )
+    auth_service.update_user_password(current_user, passwords)
+
 
 @router.get("/me", response_model=UserResource)
 async def me(user: AuthUser) -> Any:

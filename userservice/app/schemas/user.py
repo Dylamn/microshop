@@ -43,6 +43,7 @@ class UserCollectionResource(BaseModel):
 
     This object does not extend any relations.
     """
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -54,4 +55,5 @@ class UserResource(UserCollectionResource):
     """
     Represents the response model for a user.
     """
+
     addresses: list[AddressResource] = []

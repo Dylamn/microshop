@@ -23,7 +23,7 @@ class ReadinessProbeResponse(BaseModel):
 
 
 class HealthContextResponse(BaseModel):
-        service: str = "userservice"
-        version: str
-        environment: Literal["development", "staging", "production"]
-        uptime_seconds: int = 0
+    service: str = "userservice"
+    version: str
+    environment: Literal["development", "staging", "production"]
+    uptime_seconds: int = 0

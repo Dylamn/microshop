@@ -16,7 +16,7 @@ class ApiException(Exception):
         title: str,
         status_code: int,
         detail: str,
-        errors: list[dict[str, Any]] | None = None
+        errors: list[dict[str, Any]] | None = None,
     ):
         self.type = type_
         self.title = title
@@ -27,9 +27,11 @@ class ApiException(Exception):
 
     def to_api_error(self, request: Request | None = None) -> ApiError:
         instance = str(request.url.path) if request else None
-        errors = [
-            ApiErrorDetail.model_validate(error) for error in self.errors
-        ] if self.errors else None
+        errors = (
+            [ApiErrorDetail.model_validate(error) for error in self.errors]
+            if self.errors
+            else None
+        )
 
         return ApiError(
             type=self.type,
@@ -37,7 +39,7 @@ class ApiException(Exception):
             status=self.status_code,
             detail=self.detail,
             instance=instance,
-            errors=errors
+            errors=errors,
         )
 
     def tojson(self, request: Request | None = None) -> dict[str, Any]:
@@ -55,14 +57,14 @@ class ValidationException(ApiException):
         self,
         status_code: int = status.HTTP_400_BAD_REQUEST,
         detail: str = "A validation error occurred.",
-        errors: list[dict[str, Any]] | None = None
+        errors: list[dict[str, Any]] | None = None,
     ):
         super().__init__(
             type_="validation_error",
             title="Validation error",
             status_code=status_code,
             detail=detail,
-            errors=errors
+            errors=errors,
         )
 
 
@@ -76,7 +78,7 @@ class NotFoundException(ApiException):
             type_="not_found",
             title="Resource not found",
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=detail
+            detail=detail,
         )
 
 
@@ -97,7 +99,7 @@ class AuthorizationException(ApiException):
             type_="authorization",
             title="Authorization",
             status_code=status_code,
-            detail=detail
+            detail=detail,
         )
 
 
@@ -112,5 +114,5 @@ class PermissionException(ApiException):
             type_="permission",
             title="Permission error",
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=detail
+            detail=detail,
         )
